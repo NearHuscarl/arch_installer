@@ -81,7 +81,7 @@ create_partitions() { # {{{
 	echo
 	echo 'Select device to partition:'
 
-	devices=$(lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd\|nvme\|mmcblk');
+	devices=($(lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd\|nvme\|mmcblk'))
 	select DEVICE in "${devices[@]}"; do
 		if contains_element "${DEVICE}" "${devices[@]}"; then
 			break
