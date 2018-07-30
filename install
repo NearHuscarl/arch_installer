@@ -312,7 +312,8 @@ install_base() { # {{{
 	# see https://bbs.archlinux.org/viewtopic.php?pid=1384654#p1384654
 	rm "$MOUNTPOINT/boot/vmlinuz-linux" 2> /dev/null
 
-	pacstrap "$MOUNTPOINT" base base-devel git # need git for postinstall
+	pacstrap "$MOUNTPOINT" base base-devel
+	pacstrap "$MOUNTPOINT" dialog wpa_supplicant # if you use wifi in the live system, you will also need this
 
 	print_progress 'setup network for the new system'
 	wired_device="$(ip link | grep "ens\|eno\|enp" | awk '{print $2}' | sed 's/://')"
@@ -568,8 +569,8 @@ setup_bootloader() { # {{{
 
 	echo
 	print_progress 'Download necessary files for installation...'
-	# Note: for bios: pacman -Syu grub-bios
-	pacstrap ${MOUNTPOINT} grub os-prober efibootmgr
+	# Note: for bios: pacman -Syu grub-bios os-prober
+	pacstrap ${MOUNTPOINT} grub efibootmgr os-prober
 
 	print_progress 'Install grub'
 	# arch_chroot "grub-install $DEVICE"
@@ -591,6 +592,7 @@ setup_bootloader() { # {{{
 	print_progress 'Generate the main configuration file'
 	print_warning 'Remember that grub.cfg has to be re-generated after any change to /etc/default/grub or files in /etc/grub.d/'
 
+	arch_chroot 'os-prober'
 	arch_chroot 'grub-mkconfig -o /boot/grub/grub.cfg'
 	rm -rd /tmp/grub2-themes
 

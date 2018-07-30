@@ -30,7 +30,7 @@ LOCALE='en_US'
 # }}}
 # TIMEZONE {{{
 ZONE='Asia'
-SUBZONE='Saigon'
+SUBZONE='Ho_Chi_Minh'
 # }}}
 # HARDWARE CLOCK {{{
 HARDWARE_CLOCK='UTC'
