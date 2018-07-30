@@ -583,13 +583,15 @@ setup_bootloader() { # {{{
 	if [[ ! -f "${MOUNTPOINT}/etc/default/grub.aui" ]]; then
 		cp -v "${MOUNTPOINT}/etc/default/grub" "${MOUNTPOINT}/etc/default/grub.aui" 
 
+		# fix the spamming pcie bus error https://askubuntu.com/questions/771899/pcie-bus-error-severity-corrected
+		sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/s/="\(.*\)"/="\1 pci=nomsi"/' "${MOUNTPOINT}/etc/default/grub"
 		sed -i '/GRUB_THEME=/s/^.*/GRUB_THEME="\/boot\/grub\/themes\/Vimix\/theme.txt"/' "${MOUNTPOINT}/etc/default/grub"
 	fi
 
 	print_progress 'Generate the main configuration file'
 	print_warning 'Remember that grub.cfg has to be re-generated after any change to /etc/default/grub or files in /etc/grub.d/'
-	arch_chroot 'grub-mkconfig -o /boot/grub/grub.cfg'
 
+	arch_chroot 'grub-mkconfig -o /boot/grub/grub.cfg'
 	rm -rd /tmp/grub2-themes
 
 	enter_to_continue
