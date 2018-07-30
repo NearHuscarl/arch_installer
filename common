@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# list of global variables that hold default values when installing arch
+
+PS3='Enter option: '
+# EDITOR {{{
+EDITOR='vim'
+# }}}
+# MIRRORLIST {{{
+MIRRORLIST='sort by download speed'
+# }}}
+# PARTITION {{{
+DEVICE='/dev/sda'
+
+BOOT_PARTITION=''
+ROOT_PARTITION=''
+HOME_PARTITION=''
+SWAP_PARTITION=''
+
+FORMAT_BOOT_PARTITION=0
+FORMAT_HOME_PARTITION=0
+
+MOUNTPOINT='/mnt'
+# }}}
+# KEYMAP {{{
+KEYMAP='us'
+# }}}
+# LOCALE {{{
+LOCALE='en_US'
+# }}}
+# TIMEZONE {{{
+ZONE='Asia'
+SUBZONE='Saigon'
+# }}}
+# HARDWARE CLOCK {{{
+HARDWARE_CLOCK='UTC'
+# }}}
+# HOSTNAME {{{
+HOSTNAME='nearPC'
+# }}}
+# USERNAME {{{
+USERNAME='near'
+# }}}
+# DESKTOP ENVIRONMENT {{{
+DESKTOP_ENVIRONMENT='KDE'
+# }}}

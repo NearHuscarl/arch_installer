@@ -1,0 +1,240 @@
+#!/bin/bash
+
+# COLORS {{{
+BOLD="$(tput bold)"
+UNDERLINE="$(tput sgr 0 1)"
+RESET="$(tput sgr0)"
+
+# Regular Colors
+RED="$(tput setaf 1)"
+GREEN="$(tput setaf 2)"
+YELLOW="$(tput setaf 3)"
+BLUE="$(tput setaf 4)"
+PURPLE="$(tput setaf 5)"
+CYAN="$(tput setaf 6)"
+WHITE="$(tput setaf 7)"
+
+# Bold
+BRED="${BOLD}${RED}"
+BGREEN="${BOLD}${GREEN}"
+BYELLOW="${BOLD}${YELLOW}"
+BBLUE="${BOLD}${BLUE}"
+BPURPLE="${BOLD}${PURPLE}"
+BCYAN="${BOLD}${CYAN}"
+BWHITE="${BOLD}${WHITE}"
+# }}}
+
+print_line() { #{{{
+	printf "%$(tput cols)s\n"|tr ' ' '-'
+}
+# }}}
+print_title() { #{{{
+	clear
+	figlet -t -c "$1"
+	print_line
+	echo
+}
+# }}}
+print_progress() { #{{{
+	# Console width number
+	T_COLS="$(tput cols)"
+	echo -e " ${GREEN}> $1${RESET}\n" | fold -sw $(($T_COLS - 2))
+}
+# }}}
+print_info() { #{{{
+	T_COLS="$(tput cols)"
+	echo -e "  ${BLUE}$1${RESET}\n" | fold -sw $(($T_COLS - 2))
+}
+# }}}
+print_paragraph() { # {{{
+	T_COLS="$(tput cols)"
+	echo -e "  $1\n" | fold -sw $(($T_COLS - 2))
+}
+# }}}
+print_warning() { #{{{
+	T_COLS="$(tput cols)"
+	echo -e "  ${YELLOW}$1${RESET}\n" | fold -sw $(($T_COLS - 2))
+}
+# }}}
+print_danger() { #{{{
+	T_COLS="$(tput cols)"
+	echo -e "  ${RED}$1${RESET}\n" | fold -sw $(($T_COLS - 2))
+}
+# }}}
+print_error() { #{{{
+	local msg="$1"
+	print_danger "ERROR: $1"
+	exit 1
+}
+# }}}
+
+confirm() { # {{{
+	read -p "$1 [y/N]: " OPTION
+	echo
+	OPTION="$(echo $OPTION | tr '[:upper:]' '[:lower:]')"
+}
+# }}}
+confirm_yes() { # {{{
+	read -p "$1 [Y/n]: " OPTION
+	echo
+	OPTION="$(echo $OPTION | tr '[:upper:]' '[:lower:]')"
+}
+# }}}
+
+test_connection() { # {{{
+	ping -q -w 1 -c 1 "$(ip route | awk '/default/ {print $3}')" &> /dev/null \
+		&& return 1 \
+		|| return 0
+}
+# }}}
+check_connection() { # {{{
+	local wireless_device wired_device options
+	
+	wireless_device="$(ip link | grep -P '^[0-9]: w' | awk '{print $2}' | sed 's/://')"
+	wired_device="$(ip link | grep "ens\|eno\|enp" | awk '{print $2}'| sed 's/://')"
+	options=(Wired Wireless Exit)
+
+	print_progress 'Checking internet connection'
+	while test_connection; do
+		print_warning 'Connection not available'
+
+      select opt in "${options[@]}"; do
+			case "$OPTION" in
+				Wired)
+					systemctl start dhcpcd@${wired_device}.service
+					break
+					;;
+				Wireless)
+					wifi-menu ${wireless_device}
+					break
+					;;
+				Exit)
+					print_warning "Can't establish connection. exiting..."
+					exit 1
+					;;
+				*)
+					invalid_option
+			esac
+		done
+	done
+}
+# }}}
+check_root() { # {{{
+	if [[ "$(id -u)" != "0" ]]; then
+		print_error 'You must execute the script as the 'root' user'
+	fi
+}
+# }}}
+check_archlinux() { # {{{
+	if [[ ! -e /etc/arch-release ]]; then
+		print_error  'You must execute the script on Arch Linux'
+	fi
+}
+# }}}
+update_pacman_db() { # {{{
+	print_progress 'Update pacman database..'
+	pacman -Syy
+}
+# }}}
+
+setup_console_font() { # {{{
+	# setup font (default is ugly)
+	install_package tamsyn-font
+	# pacman -Ql tamsyn-font (in /usr/share/kbd/consolefonts/)
+	setfont Tamsyn7x14r
+}
+# }}}
+setup_xinitrc() { # {{{
+	# create a xinitrc file in home user directory
+	cp -fv /etc/X11/xinit/xinitrc /home/${USERNAME}/.xinitrc
+	echo -e "exec $1" >> /home/${USERNAME}/.xinitrc
+	chown -R ${USERNAME}:users /home/${USERNAME}/.xinitrc
+}
+# }}}
+install_package() { # {{{
+	local packages="$1"
+
+	for package in ${packages}; do
+		pacman -S --noconfirm --needed "$package" # install if not exists
+	done
+}
+# }}}
+install_aur_package() { # {{{
+	local packages="$1"
+
+	for package in ${packages}; do
+		su --login "$USERNAME" -c "trizen -S --noconfirm --needed $package" # install if not exists
+	done
+}
+# }}}
+read_input() { # {{{
+	read -p "$1" OPTION
+}
+# }}}
+ask_use_default() { # {{{
+	confirm_yes 'Use default'
+}
+# }}}
+arch_chroot() { # {{{
+	arch-chroot "$MOUNTPOINT" /bin/bash -c "$1"
+}
+# }}}
+enter_to_continue() { # {{{
+	read -e -sn 1 -p 'Press enter to continue...'
+}
+# }}}
+invalid_option() { # {{{
+	echo
+	if [[ "$#" == 1 ]]; then
+		print_warning "$1"
+	elif [[ "$#" == 0 ]]; then
+		print_warning 'Invalid option'
+	fi
+	enter_to_continue
+}
+# }}}
+contains_element() { # {{{
+	# check if an element exist in a string
+	for e in "${@:2}"; do
+		[[ $e == $1 ]] && break;
+	done;
+}
+# }}}
+print_partitions() { # {{{
+	lsblk --paths --output NAME,LABEL,SIZE,FSTYPE,TYPE,MOUNTPOINT | sed 's/^/\t/g'
+}
+# }}}
+fuzzy_search() { # {{{
+	echo "$1" | fzf --reverse --height=10 --prompt="$2"
+}
+# }}}
+checkbox() { # {{{
+	# display [X] or [ ]
+	local checked
+
+	checked="$1"; shift
+
+	[[ "$checked" == 1 ]] \
+		&& echo -e "${GREEN}[X]${RESET}" \
+		|| echo -e "${RED}[ ]${RESET}";
+}
+# }}}
+mainmenu_item() { # {{{
+	local checked item state
+
+	checked="$1"; shift
+	item="$1"; shift
+	state="$1"; shift
+
+	# if the task is done make sure we get the state
+	if [[ "$state" != '' ]]; then
+		state="${GREEN}[${RESET}${state}${GREEN}]${RESET}"
+	fi
+
+	echo -e "$(checkbox $checked) $item $state"
+}
+# }}}
+has_command() { # {{{
+	command -v $1 > /dev/null
+}
+# })}

@@ -1,0 +1,444 @@
+#!/bin/bash
+
+# import {{{
+if [[ -f "$(pwd)/common" ]]; then
+	source common
+else
+	print_error 'missing file: common'
+fi
+
+if [[ -f "$(pwd)/utilities" ]]; then
+	source utilities
+else
+	print_error 'missing file: utilities'
+fi
+# }}}
+
+check_multilib(){ #{{{
+	local architect="$(uname -m)"
+
+	print_progress 'Enable 32-bit application on 64-bit system'
+
+	if [[ $architect == x86_64 ]]; then
+		local has_multilib="$(grep -n "\[multilib\]" /etc/pacman.conf | cut -f1 -d:)" # get line number contains "[multilib]"
+		if [[ -z "$has_multilib" ]]; then
+			echo '[multilib]' >> /etc/pacman.conf
+			echo 'Include = /etc/pacman.d/mirrorlist' >> /etc/pacman.conf
+		else
+			sed -i "${has_multilib}s/^#//" /etc/pacman.conf
+			local has_multilib=$((${has_multilib} + 1))
+			sed -i "${has_multilib}s/^#//" /etc/pacman.conf
+		fi
+	fi
+}
+# }}}
+configure_sudo() { # {{{
+	print_progress 'Configure sudo'
+
+	install_package 'sudo'
+
+	if [[ ! -f /etc/sudoers.aui ]]; then
+		cp -v /etc/sudoers /etc/sudoers.aui
+
+		# uncomment to allow members of group wheel to execute any command
+		sed -i '/%wheel ALL=(ALL) ALL/s/^#//' /etc/sudoers
+
+		# This config is especially helpful for those using terminal multiplexers like screen, tmux, or ratpoison, and those using sudo from scripts/cronjobs:
+		echo "" >> /etc/sudoers
+		echo 'Defaults !requiretty, !tty_tickets, !umask' >> /etc/sudoers
+		echo 'Defaults visiblepw, path_info, insults, lecture=always' >> /etc/sudoers
+		echo 'Defaults loglinelen=0, logfile =/var/log/sudo.log, log_year, log_host, syslog=auth' >> /etc/sudoers
+		echo 'Defaults passwd_tries=3, passwd_timeout=1' >> /etc/sudoers
+		echo 'Defaults env_reset, always_set_home, set_home, set_logname' >> /etc/sudoers
+		echo 'Defaults !env_editor, editor="/usr/bin/nvim:/usr/bin/vi:/usr/bin/nano"' >> /etc/sudoers
+		echo 'Defaults timestamp_timeout=15' >> /etc/sudoers
+		echo 'Defaults passprompt="[sudo] password for %u: "' >> /etc/sudoers
+		echo 'Defaults lecture=never' >> /etc/sudoers
+	fi
+}
+# }}}
+install_requirements() { # {{{
+	print_progress 'Install script dependencies'
+
+	setup_console_font
+
+	# install figlet to draw big ascii title
+	install_package figlet
+
+	install_package vim
+}
+# }}}
+
+create_user_account() { # {{{
+	print_title 'ACCOUNT'
+	print_info 'Create your user account'
+
+	read -p 'Username: ' USERNAME
+	useradd -m -g users -G wheel -s /bin/bash "$USERNAME"
+	passwd "$USERNAME"
+
+	enter_to_continue
+}
+# }}}
+
+install_aur_helper() { # {{{
+	print_title 'AUR HELPER'
+	print_info "AUR helpers automate certain tasks for using the Arch User Repository. Most helpers automate the process of retrieving a package's PKGBUILD from the AUR and building the package."
+
+	if [[ "$(pacman -Qs trizen)" == '' ]]; then
+		echo
+		print_progress 'Install trizen..'
+		# running makepkg as root is not allowed as it can cause permanent, catastrophic damage to your system
+		su --login "$USERNAME" -c '
+		mkdir -p /tmp/aui_packages
+		cd /tmp/aui_packages
+		curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=trizen
+		makepkg --install --clean --syncdeps --needed --noconfirm PKGBUILD
+		'
+	else
+		print_warning 'trizen has already been installed'
+	fi
+
+	enter_to_continue
+}
+# }}}
+install_base() { # {{{
+	print_progress 'Install networkmanager'
+	install_package 'networkmanager'
+
+	if [[ "$(pacman -Qs networkmanager)" != '' ]]; then
+		# disable dhcpcd used when installing live (cant have 2 managers run at the same time)
+		systemctl stop dhcpcd
+		systemctl disable dhcpcd
+		systemctl enable NetworkManager.service
+	fi
+
+	print_progress 'Install Chrome browser'
+	install_package 'chromium'
+
+	print_progress 'Install bluetooth'
+	install_package 'bluez bluez-utils pulseaudio-bluetooth'
+
+	print_progress 'Install audio stuff'
+	install_package 'pulseaudio pulseaudio-alsa'
+
+	print_progress 'Install ntfs-3g filesystem to read/write Window files from linux'
+	install_package 'ntfs-3g'
+
+	print_progress 'Install development tool'
+	install_package 'neovim python-pip npm'
+
+	print_progress 'Install unikey'
+	install_package 'ibus-unikey'
+
+	# print_progress 'Install codecs for multimedia'
+	# install_package 'gstreamer'
+
+	print_progress 'Install other utility apps'
+	install_package 'vlc libreoffice-fresh gimp redshift reflector openssh'
+
+	print_progress 'Install shell utilities'
+	install_package 'bash-completion ripgrep fd trash-cli'
+
+	enter_to_continue
+}
+# }}}
+
+setup_vim() { # {{{
+	local home="/home/$USERNAME"
+
+	if [[ -e "$home/.vim/setup.sh" ]]; then
+		print_progress 'Setup vim config files'
+		su --login "$USERNAME" -c "$home/.vim/setup.sh"
+	else
+		print_warning 'Vim setup file not found'
+	fi
+}
+# }}}
+setup_dotfiles() { # {{{
+	local home="/home/$USERNAME"
+
+	print_title 'DOTFILES'
+	print_progress 'Set up dotfiles...'
+
+	su --login "$USERNAME" -c "git clone --recursive https://github.com/NearHuscarl/dotfiles /tmp/dotfiles"
+
+	if [[ ! -e /tmp/dotfiles  ]]; then
+		print_warning "Cannot download dotfiles"
+		return
+	fi
+
+	for file in $(find /tmp/dotfiles ! -path . | sed "s|^\./||"); do
+		if [ -e "$home/$file" ] && [ ! -d "$home/$file" ]; then
+			print_warning "$home/$file will be overwrited"
+		fi
+	done
+
+	confirm_yes "Confirm copy dotfiles to $home"
+
+	if [[ "$OPTION" != n ]]; then
+		shopt -s dotglob # cp * <dest> will include dot files
+		cp -af --verbose /tmp/dotfiles/* "$home"
+		setup_vim
+	fi
+
+	rm -rd /tmp/dotfiles
+
+	enter_to_continue
+}
+# }}}
+
+install_display_manager() { # {{{
+	print_progress 'Install display manager'
+	install_package 'sddm'
+
+	systemctl enable sddm
+	sddm --example-config > /etc/sddm.conf
+	sed -i 's/Current=/Current=breeze/' /etc/sddm.conf
+	sed -i 's/CursorTheme=/CursorTheme=breeze_cursors/' /etc/sddm.conf
+	sed -i 's/Numlock=none/Numlock=on/' /etc/sddm.conf
+}
+# }}}
+install_theme() { # {{{
+	print_progress 'Install theme and icon for desktop environment'
+	# install_package 'arc-gtk-theme'
+	install_package 'breeze breeze-gtk'
+	install_package 'papirus-icon-theme'
+}
+# }}}
+
+set_desktop_environment() { # {{{
+	local desktop_envs
+
+	OPTION=n
+	while [[ "$OPTION" != y ]]; do
+		print_title 'DESKTOP ENVIRONMENT'
+		print_info 'A DE provide a complete GUI for a system by bundling together a variety of X clients written using a common widget toolkit and set of libraries.'
+		print_info "A window manager is one component of a system's graphical user interface."
+
+		desktop_envs=(KDE XFCE I3)
+		select opt in "${desktop_envs[@]}"; do
+			if contains_element "${opt}" "${desktop_envs[@]}"; then
+				DESKTOP_ENVIRONMENT="$opt"
+				break
+			else
+				invalid_option
+			fi
+		done
+		confirm "Confirm desktop environtment ($DESKTOP_ENVIRONMENT)"
+	done
+}
+# }}}
+install_desktop_environment() { # {{{
+	print_progress 'Installing X-Server (req. for Desktopenvironment, GPU Drivers, Keyboardlayout,...)'
+	install_package 'xorg xorg-xinit'
+
+	if [[ "$DESKTOP_ENVIRONMENT" != '' ]]; then
+		confirm_yes "Use default ($DESKTOP_ENVIRONMENT)"
+		if [[ "$OPTION" == n ]]; then
+			set_desktop_environment
+		fi
+	else
+		set_desktop_environment
+	fi
+
+	case "$DESKTOP_ENVIRONMENT" in
+		KDE)
+			install_package 'plasma-desktop' # minimum plasma DE
+			install_package 'sddm' # display manager
+			install_package 'ark' # archive
+			install_package 'konsole' # terminal
+			install_package 'dolphin' # file manager
+			install_package 'bluedevel' # bluetooth for KDE
+			install_package 'plasma-nm' # networkmanager for KDE
+			install_package 'plasma-pa' # puluseaudio for KDE
+			install_package 'kinfocenter' # see system information
+			install_package 'spectacle' # screenshot utility
+			install_package 'kcolorchooser' # color picker on desktop screen
+			install_package 'plasma5-applets-redshift-control' # redshift applet for KDE
+			install_package 'ktorrent' # torrent app for KDE
+			install_package 'sddm-kcm' # sddm config gui for KDE
+			install_package 'arc-kde' # arc theme for KDE
+			install_package 'breeze-kde4' # breeze theme for KDE
+			install_package 'latte-dock' # dock for KDE
+			install_package 'qalculte-gtk' # calculator
+
+			setup_xinitrc 'startkde'
+			;;
+		XFCE)
+			install_package 'xfce4 xfce4-goodies xarchiver'
+			setup_xinitrc 'startxfce4'
+			;;
+		I3)
+			install_package 'nitrogen' # wallpaper app
+			install_package 'termite' # terminal
+			install_aur_package 'polybar' # a highly customizable taskbar
+			install_aur_package 'vtop' # a console task manager with vim-like shortcuts
+			install_package 'ranger' # a console file manager
+			install_package 'rofi' # menu to launch anything you want
+			install_package 'gnome-calculator' # calculator
+			install_package 'zathura' # pdf reader
+			install_aur_package 'dunstify' # notification manager, like dunst but have --replace option https://github.com/NearHuscarl/dotfiles/blob/7ae6df76ca9f87a87bf68f2a38775e0ab9a4de04/bin/volume#L82
+			install_package 'sxiv' # image viewer
+			install_package 'compton' # compositor
+
+			setup_xinitrc 'i3'
+			;;
+	esac
+
+	install_display_manager
+	install_theme
+
+	enter_to_continue
+}
+# }}}
+install_fonts() { # {{{
+	print_progress 'Install some nice fonts'
+
+	install_aur_package 'ttf-material-icons'
+	install_package 'ttf-inconsolata ttf-roboto ttf-font-awesome'
+
+	enter_to_continue
+}
+# }}}
+
+macOS_style() { # {{{
+	print_info 'Guide to mimic macOS interface on KDE: '
+	print_info 'System Settings > Application Style > Window Decorations > Get New Decorations > Breezemite'
+	print_info 'System Settings > Icons > Papirus'
+	print_info 'System Settings > Desktop Behavior > Screen Edges > Remove all edges and add Desktop Grid to bottom right edge'
+	print_info "Change all other properties in Appearance to use Breeze theme ${RED}EXCEPT${RESET} Look And Feel"
+	print_info 'It will reset the icon to breeze theme too. We do not want that'
+
+	print_info 'Go to desktop > Right Click > Add Panel > Application Menu Bar'
+	print_info 'Go to Taskbar > Right Click > Panel Options > Panel Settings > More Settings > Remove Panel'
+
+	print_info 'Add Simple Menu widget on the left Menu bar'
+	# print_info 'Go to desktop > Right Click > Add Widgets... > Get new widgets > Install Active Window Control'
+	# print_info 'Put new widget on the left Menu bar > Right Click > Configure Active Window Control... > Appearance'
+	# print_info '> Text type > Application name'
+	# print_info '> No window text > Desktop'
+	# print_info '> Bold text'
+	# print_info '> Text font > Default (or Lato)'
+	# print_info '> Icon and text spacing > 7.0'
+
+	print_info 'Go to desktop > Right Click > Add Widgets... > System Tray   > Put on the Right of Menu bar'
+	print_info 'Go to desktop > Right Click > Add Widgets... > Digital Clock > Put on the Right of Menu bar'
+	print_info 'Go to desktop > Right Click > Add Widgets... > Search        > Put on the Right of Menu bar'
+	print_info 'Search and run latte > Right Click > Dock/Panels Settings'
+	print_info '> Behaviour > Location > Bottom'
+	print_info '> Behaviour > Alignment > Center'
+	print_info '> Appearance > tick Advanced'
+	print_info '> Appearance > Applets Size > 40'
+	print_info '> Appearance > Background > Size > 100'
+	print_info '> Appearance > Background > Opacity > 50'
+	print_info '> Tasks > Appearance > Diffent color for minimized windows'
+	print_info '> Tasks > Appearance > Indicator for active window group'
+	print_info '> Tasks > Interaction > Preview windows on hovering'
+
+	print_info 'Add Application Launcher widget to Dock'
+	print_info 'Add Folder View widget to Dock'
+	print_info 'Add Dolphin app to Dock'
+	print_info 'Add Spectacle to Dock'
+	print_info 'Add Ksysguard to Dock'
+	print_info 'Add System Settings app to Dock'
+	print_info 'Add Browser to Dock'
+	print_info 'Add Calculator to Dock'
+
+	enter_to_continue
+}
+# }}}
+
+finish() { # {{{
+	print_title "INSTALL COMPLETED"
+
+	confirm 'Reboot system'
+	if [[ "$OPTION" == y ]]; then
+		umount_partitions
+		reboot
+	fi
+	exit 0
+}
+# }}}
+install() { # {{{
+	local checklist
+
+	checklist=(0 0 0 0 0 0 0 0 0 0 0 0 0)
+
+	while true; do
+		print_title 'ARCHLINUX INSTALLER'
+
+		echo "    1. $(mainmenu_item "${checklist[0]}"  'Create user account' "$USERNAME")"
+		echo "    2. $(mainmenu_item "${checklist[1]}"  'Install AUR helper')"
+		echo "    3. $(mainmenu_item "${checklist[2]}"  'Install desktop environment' "$DESKTOP_ENVIRONMENT")"
+		echo "    4. $(mainmenu_item "${checklist[3]}"  'Install base')"
+		echo "    5. $(mainmenu_item "${checklist[4]}"  'Setup dotfiles')"
+		echo "    6. $(mainmenu_item "${checklist[5]}"  'Install fonts')"
+		echo "    7. $(mainmenu_item "${checklist[6]}"  'MacOS styling guide')"
+		echo "    8. $(mainmenu_item "${checklist[7]}"  'Finish')"
+		echo
+
+		read -p "Enter option (1-13): " OPTION
+
+		case "$OPTION" in
+			1)
+				create_user_account
+				checklist[0]=1
+				;;
+			2)
+				install_aur_helper
+				checklist[1]=1
+				;;
+			3)
+				install_desktop_environment
+				checklist[2]=1
+				;;
+			4)
+				install_base
+				checklist[3]=1
+				;;
+			5)
+				setup_dotfiles
+				checklist[4]=1
+				;;
+			6)
+				install_fonts
+				checklist[5]=1
+				;;
+			7)
+				macOS_style
+				checklist[6]=1
+				;;
+			8)
+				finish
+				checklist[7]=1
+				;;
+			*)
+				invalid_option
+				;;
+		esac
+	done
+}
+# }}}
+main() { # {{{
+	check_root
+	check_archlinux
+	check_connection
+	check_multilib
+	update_pacman_db
+	setup_console_font
+	configure_sudo
+	install_requirements
+	install
+}
+# }}}
+
+main
+
+
+# TODO:
+# check all cases
+# chrome scrollbar is ugly
+# krunner to alt f2 in kde
+
+# add line
