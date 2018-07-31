@@ -147,10 +147,10 @@ install_base() { # {{{
 	# install_package 'gstreamer'
 
 	print_progress 'Install other utility apps'
-	install_package 'vlc libreoffice-fresh gimp redshift reflector openssh'
+	install_package 'vlc libreoffice-fresh gimp redshift reflector openssh gparted qalculate-gtk'
 
 	print_progress 'Install shell utilities'
-	install_package 'bash-completion ripgrep fd trash-cli'
+	install_package 'bash-completion ripgrep fd trash-cli xclip'
 
 	enter_to_continue
 }
@@ -318,8 +318,8 @@ macOS_style() { # {{{
 	print_info 'Guide to mimic macOS interface on KDE: '
 	print_info 'System Settings > Application Style > Window Decorations > Get New Decorations > Breezemite'
 	print_info 'System Settings > Icons > Papirus'
+	print_info "Change all other properties in Appearance to use Breeze theme EXCEPT Look And Feel"
 	print_info 'System Settings > Desktop Behavior > Screen Edges > Remove all edges and add Desktop Grid to bottom right edge'
-	print_info "Change all other properties in Appearance to use Breeze theme ${RED}EXCEPT${RESET} Look And Feel"
 	print_info 'It will reset the icon to breeze theme too. We do not want that'
 
 	print_info 'Go to desktop > Right Click > Add Panel > Application Menu Bar'
