@@ -592,7 +592,6 @@ setup_bootloader() { # {{{
 	print_progress 'Generate the main configuration file'
 	print_warning 'Remember that grub.cfg has to be re-generated after any change to /etc/default/grub or files in /etc/grub.d/'
 
-	arch_chroot 'os-prober'
 	arch_chroot 'grub-mkconfig -o /boot/grub/grub.cfg'
 	rm -rd /tmp/grub2-themes
 
@@ -706,9 +705,3 @@ main() { # {{{
 # }}}
 
 main
-
-# TODO:
-# check wireless case
-# etc/pacman.d/mirrorlist only root can access
-# arch gist
-#  266: pci=nomsi

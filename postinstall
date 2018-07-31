@@ -32,6 +32,16 @@ check_multilib(){ #{{{
 	fi
 }
 # }}}
+update_bootloader() { # {{{
+	# cannot run os-prober to detect other os when using arch-chroot in install script
+	# because grub-mkconfig fails to connect to lvmetad. You have to reboot to make it works
+	print_progress 'Update bootloader to detect other os (useful when dual-boot)'
+
+	install_package os-prober
+	os-prober
+	grub-mkconfig -o /boot/grub/grub.cfg
+}
+# }}}
 configure_sudo() { # {{{
 	print_progress 'Configure sudo'
 
@@ -428,7 +438,7 @@ main() { # {{{
 	check_connection
 	check_multilib
 	update_pacman_db
-	setup_console_font
+	update_bootloader
 	configure_sudo
 	install_requirements
 	install
@@ -441,6 +451,3 @@ main
 # TODO:
 # check all cases
 # chrome scrollbar is ugly
-# krunner to alt f2 in kde
-
-# add line
