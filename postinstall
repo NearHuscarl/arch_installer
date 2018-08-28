@@ -72,12 +72,15 @@ install_requirements() { # {{{
 
 	setup_console_font
 
-	install_package git
+	install_package 'git'
 
 	# install figlet to draw big ascii title
-	install_package figlet
+	install_package 'figlet'
 
-	install_package vim
+	install_package 'vim'
+
+	# a python script to sort mirrorlist
+	install_package 'python reflector'
 }
 # }}}
 
@@ -88,6 +91,74 @@ create_user_account() { # {{{
 	read -p 'Username: ' USERNAME
 	useradd -m -g users -G wheel -s /bin/bash "$USERNAME"
 	passwd "$USERNAME"
+
+	enter_to_continue
+}
+# }}}
+
+set_mirrorlist() { # {{{
+	local mirrorlist_opts
+
+	OPTION=n
+	while [[ "$OPTION" != y ]]; do
+		print_title "MIRRORLIST"
+
+		print_info 'Packages to be installed must be downloaded from mirror servers, which are defined in /etc/pacman.d/mirrorlist.'
+		print_info 'The higher a mirror is placed in the list, the more priority it is given when downloading a package. You may want to edit the file accordingly, and move the geographically closest mirrors to the top of the list, although other criteria should be taken into account.'
+		print_info 'This file will later be copied to the new system by pacstrap, so it is worth getting right.'
+
+		print_paragraph 'Here you can choose to sort the mirror list by download speed or leave it to default. Sorting the mirror list will take for a while'
+
+		mirrorlist_opts=('default' 'sort by download speed')
+		select opt in "${mirrorlist_opts[@]}"; do
+			if contains_element "${opt}" "${mirrorlist_opts[@]}"; then
+				MIRRORLIST="$opt"
+				break
+			else
+				invalid_option
+			fi
+		done
+		confirm "Confirm mirror list option ($MIRRORLIST)"
+	done
+}
+# }}}
+configure_mirrorlist() { # {{{
+	if [[ "$MIRRORLIST" != '' ]]; then
+		confirm_yes "Use default ($MIRRORLIST)"
+		if [[ "$OPTION" == n ]]; then
+			set_mirrorlist
+		fi
+	else
+		set_mirrorlist
+	fi
+
+	print_progress 'Backing up the original mirrorlist...'
+	mv -i /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.orig
+	tmpfile=$(mktemp --suffix=-mirrorlist)
+
+	case "$MIRRORLIST" in
+		'default')
+			# Get latest mirror list and save to tmpfile
+			curl -so "$tmpfile" 'https://www.archlinux.org/mirrorlist/all/'
+			sed -i 's/^#Server/Server/g' "$tmpfile"
+			;;
+		'sort by download speed')
+			reflector --verbose --connection-timeout 3 --latest 200 --number 40 --sort rate --save "$tmpfile"
+			;;
+		*)
+			invalid_option
+			;;
+	esac
+
+	# replace current mirrorlist file (if new file is non-zero)
+	if [[ -s "$tmpfile" ]]; then
+		mv -i "$tmpfile" /etc/pacman.d/mirrorlist
+		# allow global read access (required for non-root yaourt execution)
+		chmod +r /etc/pacman.d/mirrorlist
+		$EDITOR /etc/pacman.d/mirrorlist
+	else
+		print_warning 'Unable to update'
+	fi
 
 	enter_to_continue
 }
@@ -140,6 +211,7 @@ install_base() { # {{{
 	print_progress 'Install development tool'
 	install_package 'neovim python-pip npm'
 	install_package 'intellij-idea-ce'
+	install_package 'dk8-openjdk'
 
 	print_progress 'Install unikey'
 	install_package 'ibus-unikey'
@@ -383,13 +455,14 @@ install() { # {{{
 		print_title 'ARCHLINUX INSTALLER'
 
 		echo "    1. $(mainmenu_item "${checklist[0]}"  'Create user account' "$USERNAME")"
-		echo "    2. $(mainmenu_item "${checklist[1]}"  'Install AUR helper')"
-		echo "    3. $(mainmenu_item "${checklist[2]}"  'Install desktop environment' "$DESKTOP_ENVIRONMENT")"
-		echo "    4. $(mainmenu_item "${checklist[3]}"  'Install base')"
-		echo "    5. $(mainmenu_item "${checklist[4]}"  'Setup dotfiles')"
-		echo "    6. $(mainmenu_item "${checklist[5]}"  'Install fonts')"
-		echo "    7. $(mainmenu_item "${checklist[6]}"  'MacOS styling guide')"
-		echo "    8. $(mainmenu_item "${checklist[7]}"  'Finish')"
+		echo "    2. $(mainmenu_item "${checklist[1]}"  'Configure mirror list' "$MIRRORLIST")"
+		echo "    3. $(mainmenu_item "${checklist[2]}"  'Install AUR helper')"
+		echo "    4. $(mainmenu_item "${checklist[3]}"  'Install desktop environment' "$DESKTOP_ENVIRONMENT")"
+		echo "    5. $(mainmenu_item "${checklist[4]}"  'Install base')"
+		echo "    6. $(mainmenu_item "${checklist[5]}"  'Setup dotfiles')"
+		echo "    7. $(mainmenu_item "${checklist[6]}"  'Install fonts')"
+		echo "    8. $(mainmenu_item "${checklist[7]}"  'MacOS styling guide')"
+		echo "    9. $(mainmenu_item "${checklist[8]}"  'Finish')"
 		echo
 
 		read -p "Enter option (1-13): " OPTION
@@ -400,32 +473,36 @@ install() { # {{{
 				checklist[0]=1
 				;;
 			2)
-				install_aur_helper
+				configure_mirrorlist
 				checklist[1]=1
 				;;
 			3)
-				install_desktop_environment
+				install_aur_helper
 				checklist[2]=1
 				;;
 			4)
-				install_base
+				install_desktop_environment
 				checklist[3]=1
 				;;
 			5)
-				setup_dotfiles
+				install_base
 				checklist[4]=1
 				;;
 			6)
-				install_fonts
+				setup_dotfiles
 				checklist[5]=1
 				;;
 			7)
-				macOS_style
+				install_fonts
 				checklist[6]=1
 				;;
 			8)
-				finish
+				macOS_style
 				checklist[7]=1
+				;;
+			9)
+				finish
+				checklist[8]=1
 				;;
 			*)
 				invalid_option
@@ -439,7 +516,7 @@ main() { # {{{
 	check_archlinux
 	check_connection
 	check_multilib
-	update_pacman_db
+	update_system
 	update_bootloader
 	configure_sudo
 	install_requirements

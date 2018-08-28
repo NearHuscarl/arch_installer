@@ -131,24 +131,15 @@ check_archlinux() { # {{{
 	fi
 }
 # }}}
+
 update_pacman_db() { # {{{
 	print_progress 'Update pacman database..'
 	pacman -Syy
 }
 # }}}
-
-setup_console_font() { # {{{
-	# setup font (default is ugly)
-	install_package tamsyn-font
-	# pacman -Ql tamsyn-font (in /usr/share/kbd/consolefonts/)
-	setfont Tamsyn7x14r
-}
-# }}}
-setup_xinitrc() { # {{{
-	# create a xinitrc file in home user directory
-	cp -fv /etc/X11/xinit/xinitrc /home/${USERNAME}/.xinitrc
-	echo -e "exec $1" >> /home/${USERNAME}/.xinitrc
-	chown -R ${USERNAME}:users /home/${USERNAME}/.xinitrc
+update_system() { # {{{
+	print_progress 'Update system..'
+	pacman -Syu
 }
 # }}}
 install_package() { # {{{
@@ -165,6 +156,21 @@ install_aur_package() { # {{{
 	for package in ${packages}; do
 		su --login "$USERNAME" -c "trizen -S --noconfirm --needed $package" # install if not exists
 	done
+}
+# }}}
+
+setup_console_font() { # {{{
+	# setup font (default is ugly)
+	install_package tamsyn-font
+	# pacman -Ql tamsyn-font (in /usr/share/kbd/consolefonts/)
+	setfont Tamsyn7x14r
+}
+# }}}
+setup_xinitrc() { # {{{
+	# create a xinitrc file in home user directory
+	cp -fv /etc/X11/xinit/xinitrc /home/${USERNAME}/.xinitrc
+	echo -e "exec $1" >> /home/${USERNAME}/.xinitrc
+	chown -R ${USERNAME}:users /home/${USERNAME}/.xinitrc
 }
 # }}}
 read_input() { # {{{

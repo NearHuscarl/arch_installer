@@ -2,7 +2,6 @@
 
 # list of global variables that hold default values when installing arch
 
-PS3='Enter option: '
 # EDITOR {{{
 EDITOR='vim'
 # }}}
