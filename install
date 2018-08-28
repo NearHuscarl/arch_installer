@@ -44,8 +44,6 @@ install_requirements() { # {{{
 
 	# a python script to sort mirrorlist
 	install_package reflector
-
-	install_package vim
 }
 # }}}
 pre_install() { # {{{
