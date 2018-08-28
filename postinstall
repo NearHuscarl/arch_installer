@@ -38,8 +38,12 @@ update_bootloader() { # {{{
 	print_progress 'Update bootloader to detect other os (useful when dual-boot)'
 
 	install_package os-prober
-	os-prober
-	grub-mkconfig -o /boot/grub/grub.cfg
+
+	if [[ ! -f /boot/grub/grub.cfg.aui ]]; then
+		cp -v /boot/grub/grub.cfg /boot/grub/grub.cfg.aui
+		os-prober
+		grub-mkconfig -o /boot/grub/grub.cfg
+	fi
 }
 # }}}
 configure_sudo() { # {{{
