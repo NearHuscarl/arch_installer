@@ -37,6 +37,8 @@ however, please test it with a virtualbox first and read the script carefully
 check all cases
 
 ```bash
+wifi-menu # if you use wifi
+
 pacman -Sy git
 git clone https://github.com/NearHuscarl/arch_installer
 cd arch_installer

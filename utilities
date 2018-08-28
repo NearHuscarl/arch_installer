@@ -234,7 +234,13 @@ mainmenu_item() { # {{{
 	echo -e "$(checkbox $checked) $item $state"
 }
 # }}}
+
 has_command() { # {{{
 	command -v $1 > /dev/null
 }
-# })}
+# }}}
+has_package() { # {{{
+	pacman -Q "$1" &> /dev/null && return 0;
+	return 1
+}
+# }}}

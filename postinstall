@@ -97,7 +97,7 @@ install_aur_helper() { # {{{
 	print_title 'AUR HELPER'
 	print_info "AUR helpers automate certain tasks for using the Arch User Repository. Most helpers automate the process of retrieving a package's PKGBUILD from the AUR and building the package."
 
-	if [[ "$(pacman -Qs trizen)" == '' ]]; then
+	if ! has_package trizen; then
 		echo
 		print_progress 'Install trizen..'
 		# running makepkg as root is not allowed as it can cause permanent, catastrophic damage to your system
@@ -118,7 +118,7 @@ install_base() { # {{{
 	print_progress 'Install networkmanager'
 	install_package 'networkmanager'
 
-	if [[ "$(pacman -Qs networkmanager)" != '' ]]; then
+	if has_package networkmanager; then
 		# disable dhcpcd used when installing live (cant have 2 managers run at the same time)
 		systemctl stop dhcpcd
 		systemctl disable dhcpcd
@@ -139,6 +139,7 @@ install_base() { # {{{
 
 	print_progress 'Install development tool'
 	install_package 'neovim python-pip npm'
+	install_package 'intellij-idea-ce'
 
 	print_progress 'Install unikey'
 	install_package 'ibus-unikey'
@@ -148,9 +149,10 @@ install_base() { # {{{
 
 	print_progress 'Install other utility apps'
 	install_package 'vlc libreoffice-fresh gimp redshift reflector openssh gparted qalculate-gtk'
+	install_package 'virtualbox virtualbox-host-modules-arch'
 
 	print_progress 'Install shell utilities'
-	install_package 'bash-completion ripgrep fd trash-cli xclip'
+	install_package 'bash-completion ripgrep fd trash-cli xclip fzf lastpass-cli'
 
 	enter_to_continue
 }
