@@ -37,13 +37,13 @@ install_requirements() { # {{{
 	setup_console_font
 
 	# install figlet to draw big ascii title
-	install_package figlet
+	install_package 'figlet'
 
 	# option filter
-	install_package fzf
+	install_package 'fzf'
 
 	# a python script to sort mirrorlist
-	install_package python reflector
+	install_package 'python reflector'
 }
 # }}}
 pre_install() { # {{{
