@@ -303,7 +303,7 @@ set_desktop_environment() { # {{{
 		print_info "A window manager is one component of a system's graphical user interface."
 
 		desktop_envs=(KDE XFCE I3)
-		select opt in "${desktop_envs[@]}"; do
+		select opt in ${desktop_envs[@]}; do
 			if contains_element "${opt}" "${desktop_envs[@]}"; then
 				DESKTOP_ENVIRONMENT="$opt"
 				break
