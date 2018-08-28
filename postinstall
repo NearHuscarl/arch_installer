@@ -185,6 +185,104 @@ install_aur_helper() { # {{{
 	enter_to_continue
 }
 # }}}
+
+set_desktop_environment() { # {{{
+	local desktop_envs
+
+	OPTION=n
+	while [[ "$OPTION" != y ]]; do
+		print_title 'DESKTOP ENVIRONMENT'
+		print_info 'A DE provide a complete GUI for a system by bundling together a variety of X clients written using a common widget toolkit and set of libraries.'
+		print_info "A window manager is one component of a system's graphical user interface."
+
+		desktop_envs=(KDE XFCE I3)
+		select opt in ${desktop_envs[@]}; do
+			if contains_element "${opt}" "${desktop_envs[@]}"; then
+				DESKTOP_ENVIRONMENT="$opt"
+				break
+			else
+				invalid_option
+			fi
+		done
+		confirm "Confirm desktop environtment ($DESKTOP_ENVIRONMENT)"
+	done
+}
+# }}}
+install_desktop_environment() { # {{{
+	print_progress 'Installing X-Server (req. for Desktopenvironment, GPU Drivers, Keyboardlayout,...)'
+	install_package 'xorg xorg-xinit'
+
+	if [[ "$DESKTOP_ENVIRONMENT" != '' ]]; then
+		confirm_yes "Use default ($DESKTOP_ENVIRONMENT)"
+		if [[ "$OPTION" == n ]]; then
+			set_desktop_environment
+		fi
+	else
+		set_desktop_environment
+	fi
+
+	case "$DESKTOP_ENVIRONMENT" in
+		KDE)
+			install_package 'plasma-desktop' # minimum plasma DE
+			install_package 'sddm' # display manager
+			install_package 'ark' # archive
+			install_package 'konsole' # terminal
+			install_package 'dolphin' # file manager
+			install_package 'bluedevel' # bluetooth for KDE
+			install_package 'plasma-nm' # networkmanager for KDE
+			install_package 'plasma-pa' # puluseaudio for KDE
+			install_package 'kinfocenter' # see system information
+			install_package 'spectacle' # screenshot utility
+			install_package 'kcolorchooser' # color picker on desktop screen
+			install_package 'plasma5-applets-redshift-control' # redshift applet for KDE
+			install_package 'ktorrent' # torrent app for KDE
+			install_package 'sddm-kcm' # sddm config gui for KDE
+			install_package 'arc-kde' # arc theme for KDE
+			install_package 'breeze-kde4' # breeze theme for KDE
+			install_package 'latte-dock' # dock for KDE
+			install_package 'qalculte-gtk' # calculator
+
+			setup_xinitrc 'startkde'
+			;;
+		XFCE)
+			install_package 'xfce4 xfce4-goodies xarchiver'
+			setup_xinitrc 'startxfce4'
+			;;
+		I3)
+			install_package 'nitrogen' # wallpaper app
+			install_package 'termite' # terminal
+			install_aur_package 'polybar' # a highly customizable taskbar
+			install_aur_package 'vtop' # a console task manager with vim-like shortcuts
+			install_package 'ranger' # a console file manager
+			install_package 'rofi' # menu to launch anything you want
+			install_package 'gnome-calculator' # calculator
+			install_package 'zathura' # pdf reader
+			install_aur_package 'dunstify' # notification manager, like dunst but have --replace option https://github.com/NearHuscarl/dotfiles/blob/7ae6df76ca9f87a87bf68f2a38775e0ab9a4de04/bin/volume#L82
+			install_package 'sxiv' # image viewer
+			install_package 'compton' # compositor
+
+			setup_xinitrc 'i3'
+			;;
+	esac
+
+	install_display_manager
+	install_theme
+
+	enter_to_continue
+}
+# }}}
+install_display_manager() { # {{{
+	print_progress 'Install display manager'
+	install_package 'sddm'
+
+	systemctl enable sddm
+	sddm --example-config > /etc/sddm.conf
+	sed -i 's/Current=/Current=breeze/' /etc/sddm.conf
+	sed -i 's/CursorTheme=/CursorTheme=breeze_cursors/' /etc/sddm.conf
+	sed -i 's/Numlock=none/Numlock=on/' /etc/sddm.conf
+}
+# }}}
+
 install_base() { # {{{
 	print_progress 'Install networkmanager'
 	install_package 'networkmanager'
@@ -274,110 +372,6 @@ setup_dotfiles() { # {{{
 }
 # }}}
 
-install_display_manager() { # {{{
-	print_progress 'Install display manager'
-	install_package 'sddm'
-
-	systemctl enable sddm
-	sddm --example-config > /etc/sddm.conf
-	sed -i 's/Current=/Current=breeze/' /etc/sddm.conf
-	sed -i 's/CursorTheme=/CursorTheme=breeze_cursors/' /etc/sddm.conf
-	sed -i 's/Numlock=none/Numlock=on/' /etc/sddm.conf
-}
-# }}}
-install_theme() { # {{{
-	print_progress 'Install theme and icon for desktop environment'
-	# install_package 'arc-gtk-theme'
-	install_package 'breeze breeze-gtk'
-	install_package 'papirus-icon-theme'
-}
-# }}}
-
-set_desktop_environment() { # {{{
-	local desktop_envs
-
-	OPTION=n
-	while [[ "$OPTION" != y ]]; do
-		print_title 'DESKTOP ENVIRONMENT'
-		print_info 'A DE provide a complete GUI for a system by bundling together a variety of X clients written using a common widget toolkit and set of libraries.'
-		print_info "A window manager is one component of a system's graphical user interface."
-
-		desktop_envs=(KDE XFCE I3)
-		select opt in ${desktop_envs[@]}; do
-			if contains_element "${opt}" "${desktop_envs[@]}"; then
-				DESKTOP_ENVIRONMENT="$opt"
-				break
-			else
-				invalid_option
-			fi
-		done
-		confirm "Confirm desktop environtment ($DESKTOP_ENVIRONMENT)"
-	done
-}
-# }}}
-install_desktop_environment() { # {{{
-	print_progress 'Installing X-Server (req. for Desktopenvironment, GPU Drivers, Keyboardlayout,...)'
-	install_package 'xorg xorg-xinit'
-
-	if [[ "$DESKTOP_ENVIRONMENT" != '' ]]; then
-		confirm_yes "Use default ($DESKTOP_ENVIRONMENT)"
-		if [[ "$OPTION" == n ]]; then
-			set_desktop_environment
-		fi
-	else
-		set_desktop_environment
-	fi
-
-	case "$DESKTOP_ENVIRONMENT" in
-		KDE)
-			install_package 'plasma-desktop' # minimum plasma DE
-			install_package 'sddm' # display manager
-			install_package 'ark' # archive
-			install_package 'konsole' # terminal
-			install_package 'dolphin' # file manager
-			install_package 'bluedevel' # bluetooth for KDE
-			install_package 'plasma-nm' # networkmanager for KDE
-			install_package 'plasma-pa' # puluseaudio for KDE
-			install_package 'kinfocenter' # see system information
-			install_package 'spectacle' # screenshot utility
-			install_package 'kcolorchooser' # color picker on desktop screen
-			install_package 'plasma5-applets-redshift-control' # redshift applet for KDE
-			install_package 'ktorrent' # torrent app for KDE
-			install_package 'sddm-kcm' # sddm config gui for KDE
-			install_package 'arc-kde' # arc theme for KDE
-			install_package 'breeze-kde4' # breeze theme for KDE
-			install_package 'latte-dock' # dock for KDE
-			install_package 'qalculte-gtk' # calculator
-
-			setup_xinitrc 'startkde'
-			;;
-		XFCE)
-			install_package 'xfce4 xfce4-goodies xarchiver'
-			setup_xinitrc 'startxfce4'
-			;;
-		I3)
-			install_package 'nitrogen' # wallpaper app
-			install_package 'termite' # terminal
-			install_aur_package 'polybar' # a highly customizable taskbar
-			install_aur_package 'vtop' # a console task manager with vim-like shortcuts
-			install_package 'ranger' # a console file manager
-			install_package 'rofi' # menu to launch anything you want
-			install_package 'gnome-calculator' # calculator
-			install_package 'zathura' # pdf reader
-			install_aur_package 'dunstify' # notification manager, like dunst but have --replace option https://github.com/NearHuscarl/dotfiles/blob/7ae6df76ca9f87a87bf68f2a38775e0ab9a4de04/bin/volume#L82
-			install_package 'sxiv' # image viewer
-			install_package 'compton' # compositor
-
-			setup_xinitrc 'i3'
-			;;
-	esac
-
-	install_display_manager
-	install_theme
-
-	enter_to_continue
-}
-# }}}
 install_fonts() { # {{{
 	print_progress 'Install some nice fonts'
 
@@ -387,7 +381,13 @@ install_fonts() { # {{{
 	enter_to_continue
 }
 # }}}
-
+install_theme() { # {{{
+	print_progress 'Install theme and icon for desktop environment'
+	# install_package 'arc-gtk-theme'
+	install_package 'breeze breeze-gtk'
+	install_package 'papirus-icon-theme'
+}
+# }}}
 macOS_style() { # {{{
 	print_info 'Guide to mimic macOS interface on KDE: '
 	print_info 'System Settings > Application Style > Window Decorations > Get New Decorations > Breezemite'
