@@ -244,6 +244,7 @@ install_desktop_environment() { # {{{
 			install_package 'arc-kde' # arc theme for KDE
 			install_package 'breeze-kde4' # breeze theme for KDE
 			install_package 'latte-dock' # dock for KDE
+			install_package 'okular' # pdf reader for KDE
 			install_package 'qalculte-gtk' # calculator
 
 			setup_xinitrc 'startkde'
@@ -312,8 +313,11 @@ install_base() { # {{{
 
 	print_progress 'Install development tool'
 	install_package 'neovim python-pip npm'
+	npm install -g yarn
+	install_aur_package 'heroku-cli'
 	install_package 'intellij-idea-ce'
 	install_package 'dk8-openjdk'
+	install_package 'rust' # vim-markdown-composer
 
 	print_progress 'Install unikey'
 	install_package 'ibus-unikey'
@@ -324,9 +328,10 @@ install_base() { # {{{
 	print_progress 'Install other utility apps'
 	install_package 'vlc libreoffice-fresh gimp redshift reflector openssh gparted qalculate-gtk'
 	install_package 'virtualbox virtualbox-host-modules-arch'
+	install_aur_package 'teamviewer'
 
 	print_progress 'Install shell utilities'
-	install_package 'bash-completion ripgrep fd trash-cli xclip fzf lastpass-cli'
+	install_package 'bash-completion ripgrep fd trash-cli xclip fzf lastpass-cli pacman-contrib'
 
 	enter_to_continue
 }
@@ -392,52 +397,6 @@ install_theme() { # {{{
 	install_package 'papirus-icon-theme'
 }
 # }}}
-macOS_style() { # {{{
-	print_info 'Guide to mimic macOS interface on KDE: '
-	print_info 'System Settings > Application Style > Window Decorations > Get New Decorations > Breezemite'
-	print_info 'System Settings > Icons > Papirus'
-	print_info "Change all other properties in Appearance to use Breeze theme EXCEPT Look And Feel"
-	print_info 'System Settings > Desktop Behavior > Screen Edges > Remove all edges and add Desktop Grid to bottom right edge'
-	print_info 'It will reset the icon to breeze theme too. We do not want that'
-
-	print_info 'Go to desktop > Right Click > Add Panel > Application Menu Bar'
-	print_info 'Go to Taskbar > Right Click > Panel Options > Panel Settings > More Settings > Remove Panel'
-
-	print_info 'Add Simple Menu widget on the left Menu bar'
-	# print_info 'Go to desktop > Right Click > Add Widgets... > Get new widgets > Install Active Window Control'
-	# print_info 'Put new widget on the left Menu bar > Right Click > Configure Active Window Control... > Appearance'
-	# print_info '> Text type > Application name'
-	# print_info '> No window text > Desktop'
-	# print_info '> Bold text'
-	# print_info '> Text font > Default (or Lato)'
-	# print_info '> Icon and text spacing > 7.0'
-
-	print_info 'Go to desktop > Right Click > Add Widgets... > System Tray   > Put on the Right of Menu bar'
-	print_info 'Go to desktop > Right Click > Add Widgets... > Digital Clock > Put on the Right of Menu bar'
-	print_info 'Go to desktop > Right Click > Add Widgets... > Search        > Put on the Right of Menu bar'
-	print_info 'Search and run latte > Right Click > Dock/Panels Settings'
-	print_info '> Behaviour > Location > Bottom'
-	print_info '> Behaviour > Alignment > Center'
-	print_info '> Appearance > tick Advanced'
-	print_info '> Appearance > Applets Size > 40'
-	print_info '> Appearance > Background > Size > 100'
-	print_info '> Appearance > Background > Opacity > 50'
-	print_info '> Tasks > Appearance > Diffent color for minimized windows'
-	print_info '> Tasks > Appearance > Indicator for active window group'
-	print_info '> Tasks > Interaction > Preview windows on hovering'
-
-	print_info 'Add Application Launcher widget to Dock'
-	print_info 'Add Folder View widget to Dock'
-	print_info 'Add Dolphin app to Dock'
-	print_info 'Add Spectacle to Dock'
-	print_info 'Add Ksysguard to Dock'
-	print_info 'Add System Settings app to Dock'
-	print_info 'Add Browser to Dock'
-	print_info 'Add Calculator to Dock'
-
-	enter_to_continue
-}
-# }}}
 
 finish() { # {{{
 	print_title "INSTALL COMPLETED"
@@ -465,8 +424,7 @@ install() { # {{{
 		echo "    5. $(mainmenu_item "${checklist[4]}"  'Install base')"
 		echo "    6. $(mainmenu_item "${checklist[5]}"  'Setup dotfiles')"
 		echo "    7. $(mainmenu_item "${checklist[6]}"  'Install fonts')"
-		echo "    8. $(mainmenu_item "${checklist[7]}"  'MacOS styling guide')"
-		echo "    9. $(mainmenu_item "${checklist[8]}"  'Finish')"
+		echo "    8. $(mainmenu_item "${checklist[7]}"  'Finish')"
 		echo
 
 		read -p "Enter option (1-13): " OPTION
@@ -501,12 +459,8 @@ install() { # {{{
 				checklist[6]=1
 				;;
 			8)
-				macOS_style
-				checklist[7]=1
-				;;
-			9)
 				finish
-				checklist[8]=1
+				checklist[7]=1
 				;;
 			*)
 				invalid_option
