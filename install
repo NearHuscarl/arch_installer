@@ -228,8 +228,6 @@ setup_partition() { # {{{
 # }}}
 
 install_base() { # {{{
-	local wired_device
-
 	print_title 'INSTALL BASE SYSTEM'
 	print_info 'Using the pacstrap script we install the base system. The base-devel package group will be installed also.'
 
@@ -243,8 +241,7 @@ install_base() { # {{{
 	pacstrap "$MOUNTPOINT" dialog wpa_supplicant # if you use wifi in the live system, you will also need this
 
 	print_progress 'setup network for the new system'
-	wired_device="$(ip link | grep "ens\|eno\|enp" | awk '{print $2}' | sed 's/://')"
-	arch_chroot "systemctl enable dhcpcd@${wired_device}.service"
+	arch_chroot "systemctl enable dhcpcd@${NETWORK_DEVICE}.service"
 
 	enter_to_continue
 }

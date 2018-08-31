@@ -81,6 +81,14 @@ confirm_yes() { # {{{
 }
 # }}}
 
+wired_device() { # {{{
+	ip link | grep "ens\|eno\|enp" | awk '{print $2}'| sed 's/://'
+}
+# }}}
+wireless_device() { # {{{
+	ip link | grep -P '^[0-9]: w' | awk '{print $2}' | sed 's/://'
+}
+# }}}
 test_connection() { # {{{
 	ping -q -w 1 -c 1 "$(ip route | awk '/default/ {print $3}')" &> /dev/null \
 		&& return 1 \
@@ -89,9 +97,9 @@ test_connection() { # {{{
 # }}}
 check_connection() { # {{{
 	local wireless_device wired_device options
-	
-	wireless_device="$(ip link | grep -P '^[0-9]: w' | awk '{print $2}' | sed 's/://')"
-	wired_device="$(ip link | grep "ens\|eno\|enp" | awk '{print $2}'| sed 's/://')"
+
+	wireless_device="$(wireless_device)"
+	wired_device="$(wired_device)"
 	options=(Wired Wireless Exit)
 
 	print_progress 'Checking internet connection'
@@ -102,10 +110,12 @@ check_connection() { # {{{
 			case "$OPTION" in
 				Wired)
 					systemctl start dhcpcd@${wired_device}.service
+					NETWORK_DEVICE="$wired_device"
 					break
 					;;
 				Wireless)
 					wifi-menu ${wireless_device}
+					NETWORK_DEVICE="$wireless_device"
 					break
 					;;
 				Exit)
@@ -119,6 +129,7 @@ check_connection() { # {{{
 	done
 }
 # }}}
+
 check_root() { # {{{
 	if [[ "$(id -u)" != "0" ]]; then
 		print_error 'You must execute the script as the 'root' user'

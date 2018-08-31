@@ -294,8 +294,8 @@ install_base() { # {{{
 
 	if has_package networkmanager; then
 		# disable dhcpcd used when installing live (cant have 2 managers run at the same time)
-		systemctl stop dhcpcd
-		systemctl disable dhcpcd
+		systemctl stop dhcpcd@${NETWORK_DEVICE}.service
+		systemctl disable dhcpcd@${NETWORK_DEVICE}.service
 		systemctl enable NetworkManager.service
 	fi
 
