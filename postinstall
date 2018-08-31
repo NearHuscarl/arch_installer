@@ -104,7 +104,7 @@ set_mirrorlist() { # {{{
 	local mirrorlist_opts
 
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title "MIRRORLIST"
 
 		print_info 'Packages to be installed must be downloaded from mirror servers, which are defined in /etc/pacman.d/mirrorlist.'
@@ -122,7 +122,7 @@ set_mirrorlist() { # {{{
 				invalid_option
 			fi
 		done
-		confirm "Confirm mirror list option ($MIRRORLIST)"
+		confirm_yes "Confirm mirror list option ($MIRRORLIST)"
 	done
 }
 # }}}
@@ -194,7 +194,7 @@ set_desktop_environment() { # {{{
 	local desktop_envs
 
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title 'DESKTOP ENVIRONMENT'
 		print_info 'A DE provide a complete GUI for a system by bundling together a variety of X clients written using a common widget toolkit and set of libraries.'
 		print_info "A window manager is one component of a system's graphical user interface."
@@ -208,7 +208,7 @@ set_desktop_environment() { # {{{
 				invalid_option
 			fi
 		done
-		confirm "Confirm desktop environtment ($DESKTOP_ENVIRONMENT)"
+		confirm_yes "Confirm desktop environtment ($DESKTOP_ENVIRONMENT)"
 	done
 }
 # }}}
@@ -402,8 +402,8 @@ install_theme() { # {{{
 finish() { # {{{
 	print_title "INSTALL COMPLETED"
 
-	confirm 'Reboot system'
-	if [[ "$OPTION" == y ]]; then
+	confirm_yes 'Reboot system'
+	if [[ "$OPTION" != n ]]; then
 		umount_partitions
 		reboot
 	fi

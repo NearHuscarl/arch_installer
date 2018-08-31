@@ -266,7 +266,7 @@ set_locale() { # {{{
 	local locales
 
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title 'LOCALE'
 		print_info 'Locales are used by glibc and other locale-aware programs or libraries for rendering text, correctly displaying regional monetary values, time and date formats, alphabetic idiosyncrasies, and other locale-specific standards.'
 		echo
@@ -275,7 +275,7 @@ set_locale() { # {{{
 		LOCALE="$(fuzzy_search "$locales" 'Enter locale: ')"
 
 		if [[ "$LOCALE" != '' ]]; then
-			confirm "Confirm locale ($LOCALE)"
+			confirm_yes "Confirm locale ($LOCALE)"
 		else
 			invalid_option
 		fi
@@ -308,7 +308,7 @@ set_timezone() { # {{{
 	local zones subzones
 
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title 'TIMEZONE'
 		print_info 'Select your timezone'
 
@@ -320,7 +320,7 @@ set_timezone() { # {{{
 			SUBZONE="$(fuzzy_search "$subzones" 'Enter subzone: ')"
 
 			if [[ "$SUBZONE" != '' ]]; then
-				confirm "Confirm timezone ($ZONE/$SUBZONE)"
+				confirm_yes "Confirm timezone ($ZONE/$SUBZONE)"
 			else
 				invalid_option
 			fi
@@ -349,7 +349,7 @@ set_hardware_clock() { # {{{
 	local hardware_clock_opts
 
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title 'HARDWARE CLOCK'
 		print_info 'This is set in /etc/adjtime. Set the hardware clock mode uniformly between your operating systems on the same machine. Otherwise, they will overwrite the time and cause clock shifts (which can cause time drift correction to be miscalibrated).'
 
@@ -364,7 +364,7 @@ set_hardware_clock() { # {{{
 				invalid_option
 			fi
 		done
-		confirm "Confirm hardware clock ($HARDWARE_CLOCK)"
+		confirm_yes "Confirm hardware clock ($HARDWARE_CLOCK)"
 	done
 }
 # }}}
@@ -394,7 +394,7 @@ set_keymap() { # {{{
 	local keymaps
 
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title 'KEYMAP'
 		print_info 'Select your keyboard layout. Default is US'
 
@@ -402,7 +402,7 @@ set_keymap() { # {{{
 		KEYMAP="$(fuzzy_search "$keymaps" 'Enter layout: ')"
 
 		if [[ "$KEYMAP" != '' ]]; then
-			confirm "Confirm keyboard layout ($KEYMAP)"
+			confirm_yes "Confirm keyboard layout ($KEYMAP)"
 		else
 			invalid_option
 		fi
@@ -427,7 +427,7 @@ select_keyboard_layout() { # {{{
 
 create_hostname() { # {{{
 	OPTION=n
-	while [[ "$OPTION" != y ]]; do
+	while [[ "$OPTION" != n ]]; do
 		print_title 'HOSTNAME'
 		print_info 'A host name is a unique name created to identify a machine on a network. Host names are restricted to alphanumeric characters. The hyphen (-) can be used, but a host name cannot start or end with it. Length is restricted to 63 characters.'
 
@@ -436,7 +436,7 @@ create_hostname() { # {{{
 
 		if [[ "$OPTION" != '' ]]; then
 			HOSTNAME="$OPTION"
-			confirm "Confirm host name ($HOSTNAME)"
+			confirm_yes "Confirm host name ($HOSTNAME)"
 		else
 			invalid_option
 		fi
