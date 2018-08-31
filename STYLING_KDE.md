@@ -25,8 +25,8 @@
 
 Add some Application on the dock. Example:
 
--  Application
--  Folder
+-  Application Launcher
+-  Desktop Folder widget
 -  Dolphin
 -  Spectacle
 -  Ksysguard

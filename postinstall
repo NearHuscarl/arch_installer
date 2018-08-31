@@ -246,6 +246,7 @@ install_desktop_environment() { # {{{
 			install_package 'latte-dock' # dock for KDE
 			install_package 'okular' # pdf reader for KDE
 			install_package 'qalculte-gtk' # calculator
+			install_package 'kde-gtk-config' # configure gtk in KDE
 
 			setup_xinitrc 'startkde'
 			;;
