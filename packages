@@ -1,0 +1,62 @@
+# list of packages to install in postinstall script
+#
+# comment line start with '#' character
+#
+# one or more packages per line, if there are multiple
+# packages, it all has to be either official or aur ones
+#
+# if package not found in official repo, fallback to AUR
+
+# network interface
+networkmanager
+
+# browser
+chromium
+firefox
+tor-browser # AUR
+
+# bluetooth
+bluez bluez-utils pulseaudio-bluetooth
+
+# audio
+pulseaudio pulseaudio-alsa
+
+# filesystem
+ntfs-3g # read/write Window files from linux
+
+# development tool
+neovim
+python-pip
+npm
+rust # vim-markdown-composer
+
+mongodb
+heroku-cli # AUR
+postman-bin # AUR
+robo3t-bin # AUR
+
+intellij-idea-ce
+dk8-openjdk
+
+# telex
+ibus-unikey
+
+# virtualbox
+virtualbox virtualbox-host-dkms virtualbox-guest-utils virtualbox-guest-dkms linux-headers
+
+# script/CLI tools
+reflector
+bash-completion
+ripgrep fd
+trash-cli
+xclip
+fzf
+lastpass-cli
+pacman-contrib
+
+# other
+vlc redshift openssh gparted qalculate-gtk
+
+teamviewer # AUR
+
+# vim ft=conf

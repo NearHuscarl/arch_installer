@@ -290,8 +290,9 @@ install_display_manager() { # {{{
 # }}}
 
 install_base() { # {{{
-	print_progress 'Install networkmanager'
-	install_package 'networkmanager'
+	local script_dir
+
+	script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
 	if has_package networkmanager; then
 		# disable dhcpcd used when installing live (cant have 2 managers run at the same time)
@@ -300,39 +301,20 @@ install_base() { # {{{
 		systemctl enable NetworkManager.service
 	fi
 
-	print_progress 'Install Chrome browser'
-	install_package 'chromium'
+	arch_packages="$(read_packages "$script_dir/packages")"
+	npm_packages="$(read_packages "$script_dir/packages.npm")"
+	pip_packages="$(read_packages "$script_dir/packages.pip")"
 
-	print_progress 'Install bluetooth'
-	install_package 'bluez bluez-utils pulseaudio-bluetooth'
+	for package in ${arch_packages[@]}; do
+		if is_package_available "$package"; then
+			install_package "$package"
+		else
+			install_aur_package "$package"
+		fi
+	done
 
-	print_progress 'Install audio stuff'
-	install_package 'pulseaudio pulseaudio-alsa'
-
-	print_progress 'Install ntfs-3g filesystem to read/write Window files from linux'
-	install_package 'ntfs-3g'
-
-	print_progress 'Install development tool'
-	install_package 'neovim python-pip npm'
-	npm install -g yarn
-	install_aur_package 'heroku-cli'
-	install_package 'intellij-idea-ce'
-	install_package 'dk8-openjdk'
-	install_package 'rust' # vim-markdown-composer
-
-	print_progress 'Install unikey'
-	install_package 'ibus-unikey'
-
-	# print_progress 'Install codecs for multimedia'
-	# install_package 'gstreamer'
-
-	print_progress 'Install other utility apps'
-	install_package 'vlc libreoffice-fresh gimp redshift reflector openssh gparted qalculate-gtk'
-	install_package 'virtualbox virtualbox-host-modules-arch'
-	install_aur_package 'teamviewer'
-
-	print_progress 'Install shell utilities'
-	install_package 'bash-completion ripgrep fd trash-cli xclip fzf lastpass-cli pacman-contrib'
+	npm install -g "$npm_packages"
+	pip install --user "$pip_packages"
 
 	enter_to_continue
 }

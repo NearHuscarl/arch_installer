@@ -143,6 +143,22 @@ check_archlinux() { # {{{
 }
 # }}}
 
+has_command() { # {{{
+	command -v $1 > /dev/null
+}
+# }}}
+has_package() { # {{{
+	pacman -Q "$1" &> /dev/null && return 0;
+	return 1
+}
+# }}}
+
+is_package_available() { # {{{
+	local package="$1"
+	pacman -Ssq "^${package}$" &> /dev/null && return 0;
+	return 1
+}
+# }}}
 update_pacman_db() { # {{{
 	print_progress 'Update pacman database..'
 	pacman -Syy
@@ -153,12 +169,22 @@ update_system() { # {{{
 	pacman -Syu
 }
 # }}}
-install_package() { # {{{
-	local packages="$1"
+read_packages() { # {{{
+	local file="$1" packages=''
 
-	for package in ${packages}; do
-		pacman -S --noconfirm --needed "$package" # install if not exists
-	done
+	while read -r line ; do
+		line=${line%\#*} # remove comment
+		if [[ "$line" =~ ^\ *$ ]]; then
+			continue
+		fi
+		packages+="$line "
+	done < "$file"
+
+	echo "$packages"
+}
+# }}}
+install_package() { # {{{
+	pacman -S --noconfirm --needed $@ # install if not exists
 }
 # }}}
 install_aur_package() { # {{{
@@ -249,15 +275,5 @@ mainmenu_item() { # {{{
 	fi
 
 	echo -e "$(checkbox $checked) $item $state"
-}
-# }}}
-
-has_command() { # {{{
-	command -v $1 > /dev/null
-}
-# }}}
-has_package() { # {{{
-	pacman -Q "$1" &> /dev/null && return 0;
-	return 1
 }
 # }}}
