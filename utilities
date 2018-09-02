@@ -96,10 +96,8 @@ test_connection() { # {{{
 }
 # }}}
 check_connection() { # {{{
-	local wireless_device wired_device options
+	local options
 
-	wireless_device="$(wireless_device)"
-	wired_device="$(wired_device)"
 	options=(Wired Wireless Exit)
 
 	print_progress 'Checking internet connection'
@@ -109,13 +107,11 @@ check_connection() { # {{{
       select opt in "${options[@]}"; do
 			case "$OPTION" in
 				Wired)
-					systemctl start dhcpcd@${wired_device}.service
-					NETWORK_DEVICE="$wired_device"
+					systemctl start "dhcpcd@$(wired_device).service"
 					break
 					;;
 				Wireless)
-					wifi-menu ${wireless_device}
-					NETWORK_DEVICE="$wireless_device"
+					wifi-menu "$(wireless_device)"
 					break
 					;;
 				Exit)
