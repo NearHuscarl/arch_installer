@@ -104,7 +104,7 @@ set_mirrorlist() { # {{{
 	local mirrorlist_opts
 
 	OPTION=n
-	while [[ "$OPTION" != n ]]; do
+	while [[ "$OPTION" == n ]]; do
 		print_title "MIRRORLIST"
 
 		print_info 'Packages to be installed must be downloaded from mirror servers, which are defined in /etc/pacman.d/mirrorlist.'
@@ -194,7 +194,7 @@ set_desktop_environment() { # {{{
 	local desktop_envs
 
 	OPTION=n
-	while [[ "$OPTION" != n ]]; do
+	while [[ "$OPTION" == n ]]; do
 		print_title 'DESKTOP ENVIRONMENT'
 		print_info 'A DE provide a complete GUI for a system by bundling together a variety of X clients written using a common widget toolkit and set of libraries.'
 		print_info "A window manager is one component of a system's graphical user interface."
