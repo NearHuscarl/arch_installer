@@ -91,8 +91,8 @@ wireless_device() { # {{{
 # }}}
 test_connection() { # {{{
 	ping -q -w 1 -c 1 "$(ip route | awk '/default/ {print $3}')" &> /dev/null \
-		&& return 1 \
-		|| return 0
+		&& return 0 \
+		|| return 1
 }
 # }}}
 check_connection() { # {{{
@@ -103,7 +103,7 @@ check_connection() { # {{{
 	options=(Wired Wireless Exit)
 
 	print_progress 'Checking internet connection'
-	while test_connection; do
+	while ! test_connection; do
 		print_warning 'Connection not available'
 
       select opt in "${options[@]}"; do
