@@ -192,6 +192,15 @@ install_aur_package() { # {{{
 }
 # }}}
 
+npm_install() { # {{{
+	npm install -g $@
+}
+# }}}
+pip_install() { # {{{
+	pip install --user $@
+}
+# }}}
+
 setup_console_font() { # {{{
 	# setup font (default is ugly)
 	install_package tamsyn-font

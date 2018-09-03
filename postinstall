@@ -309,8 +309,8 @@ install_base() { # {{{
 		fi
 	done
 
-	npm install -g "$npm_packages"
-	pip install --user "$pip_packages"
+	npm_install "$npm_packages"
+	pip_install "$pip_packages"
 
 	if has_package networkmanager; then
 		local wired_device="$(wired_device)"
