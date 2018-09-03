@@ -36,7 +36,7 @@ postman-bin # AUR
 robo3t-bin # AUR
 
 intellij-idea-ce
-dk8-openjdk
+jdk8-openjdk
 
 # telex
 ibus-unikey
