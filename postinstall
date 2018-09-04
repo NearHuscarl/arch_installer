@@ -390,7 +390,6 @@ finish() { # {{{
 
 	confirm_yes 'Reboot system'
 	if [[ "$OPTION" != n ]]; then
-		umount_partitions
 		reboot
 	fi
 	exit 0
