@@ -257,6 +257,13 @@ fuzzy_search() { # {{{
 	echo "$1" | fzf --reverse --height=10 --prompt="$2"
 }
 # }}}
+is_in_virtualbox() { # {{{
+	if [[ "$(systemd-detect-virt)" == oracle ]]; then
+		return 0
+	fi
+	return 1
+}
+# }}}
 update_option() { # {{{
 	local option="$1" value="${!1}" # get the variable value where variable name is stored as a string
 	sed -i "/${option}=/s/^.*$/${option}='$value'/" "$PROJECT_ROOT/common"

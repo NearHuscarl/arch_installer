@@ -493,7 +493,17 @@ configure_mkinitcpio() { # {{{
 	enter_to_continue
 }
 # }}}
+
+setup_bootloader_theme() { # {{{
+	print_progress 'Install theme for grub'
+	git clone 'https://github.com/NearHuscarl/grub2-themes' /tmp/grub2-themes
+	cp -rd /tmp/grub2-themes/grub-theme-vimix/Vimix "${MOUNTPOINT}/boot/grub/themes"
+	rm -rd /tmp/grub2-themes
+}
+# }}}
 setup_bootloader() { # {{{
+	local boot_id='arch_grub'
+
 	print_title 'BOOTLOADER'
 	print_info 'A Linux-capable boot loader must be installed in order to boot Arch Linux.'
 
@@ -504,12 +514,9 @@ setup_bootloader() { # {{{
 
 	print_progress 'Install grub'
 	# arch_chroot "grub-install $DEVICE"
-	arch_chroot 'grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=arch_grub --recheck'
+	arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=$boot_id --recheck"
 
-	print_progress 'Install theme for grub'
-	git clone 'https://github.com/NearHuscarl/grub2-themes' /tmp/grub2-themes
-	cp -rd /tmp/grub2-themes/grub-theme-vimix/Vimix "${MOUNTPOINT}/boot/grub/themes"
-
+	setup_bootloader_theme
 
 	if [[ ! -f "${MOUNTPOINT}/etc/default/grub.aui" ]]; then
 		cp -v "${MOUNTPOINT}/etc/default/grub" "${MOUNTPOINT}/etc/default/grub.aui" 
@@ -523,7 +530,14 @@ setup_bootloader() { # {{{
 	print_warning 'Remember that grub.cfg has to be re-generated after any change to /etc/default/grub or files in /etc/grub.d/'
 
 	arch_chroot 'grub-mkconfig -o /boot/grub/grub.cfg'
-	rm -rd /tmp/grub2-themes
+
+	# fix a bug when install arch in EFI mode with virtualbox
+	# https://wiki.archlinux.org/index.php/VirtualBox#Installation_in_EFI_mode
+	# https://www.youtube.com/watch?v=q87bWzKym5g
+	if is_in_virtualbox; then
+		mkdir "${MOUNTPOINT}/boot/EFI/boot"
+		cp "${MOUNTPOINT}/boot/EFI/$boot_id/grubx64.efi" "${MOUNTPOINT}/boot/EFI/boot/bootx64.efi"
+	fi
 
 	enter_to_continue
 }
