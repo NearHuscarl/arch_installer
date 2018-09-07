@@ -4,6 +4,7 @@
 
 PS3='Enter option: '
 NETWORK_DEVICE=''
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
 # EDITOR {{{
 EDITOR='vim'
@@ -24,9 +25,6 @@ FORMAT_HOME_PARTITION=0
 
 MOUNTPOINT='/mnt'
 # }}}
-# KEYMAP {{{
-KEYMAP='us'
-# }}}
 # LOCALE {{{
 LOCALE='en_US'
 # }}}
@@ -36,6 +34,9 @@ SUBZONE='Ho_Chi_Minh'
 # }}}
 # HARDWARE CLOCK {{{
 HARDWARE_CLOCK='UTC'
+# }}}
+# KEYMAP {{{
+KEYMAP='us'
 # }}}
 # HOSTNAME {{{
 HOSTNAME='nearPC'

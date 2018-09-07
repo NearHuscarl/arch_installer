@@ -293,6 +293,7 @@ select_locale() { # {{{
 	else
 		set_locale
 	fi
+	update_option 'LOCALE'
 
 	locale_utf8="${LOCALE}.UTF-8"
 
@@ -339,6 +340,8 @@ select_timezone() { # {{{
 	else
 		set_timezone
 	fi
+	update_option 'ZONE'
+	update_option 'SUBZONE'
 
 	arch_chroot "ln -sf /usr/share/zoneinfo/${ZONE}/${SUBZONE} /etc/localtime"
 	enter_to_continue
@@ -377,6 +380,7 @@ configure_hardware_clock() { # {{{
 	else
 		set_hardware_clock
 	fi
+	update_option 'HARDWARE_CLOCK'
 
 	case "$HARDWARE_CLOCK" in
 		UTC)
@@ -418,6 +422,7 @@ select_keyboard_layout() { # {{{
 	else
 		set_keymap
 	fi
+	update_option 'KEYMAP'
 
 	# loadkeys "$KEYMAP"
 	echo "KEYMAP=$KEYMAP" > ${MOUNTPOINT}/etc/vconsole.conf
@@ -452,6 +457,7 @@ configure_hostname() { # {{{
 	else
 		create_hostname
 	fi
+	update_option 'HOSTNAME'
 
 	echo "$HOSTNAME" > "${MOUNTPOINT}/etc/hostname"
 

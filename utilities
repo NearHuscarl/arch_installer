@@ -215,6 +215,7 @@ setup_xinitrc() { # {{{
 	chown -R ${USERNAME}:users /home/${USERNAME}/.xinitrc
 }
 # }}}
+
 read_input() { # {{{
 	read -p "$1" OPTION
 }
@@ -256,6 +257,12 @@ fuzzy_search() { # {{{
 	echo "$1" | fzf --reverse --height=10 --prompt="$2"
 }
 # }}}
+update_option() { # {{{
+	local option="$1" value="${!1}" # get the variable value where variable name is stored as a string
+	sed -i "/${option}=/s/^.*$/${option}='$value'/" "$PROJECT_ROOT/common"
+}
+# }}}
+
 checkbox() { # {{{
 	# display [X] or [ ]
 	local checked
