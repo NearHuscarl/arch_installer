@@ -266,7 +266,7 @@ is_in_virtualbox() { # {{{
 # }}}
 update_option() { # {{{
 	local option="$1" value="${!1}" # get the variable value where variable name is stored as a string
-	sed -i "/${option}=/s/^.*$/${option}='$value'/" "$PROJECT_ROOT/common"
+	sed -i "/^${option}=/s/^.*$/${option}='$value'/" "$PROJECT_ROOT/common"
 }
 # }}}
 
