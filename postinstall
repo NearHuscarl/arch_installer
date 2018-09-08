@@ -239,6 +239,7 @@ install_desktop_environment() { # {{{
 			install_package 'plasma-nm' # networkmanager for KDE
 			install_package 'plasma-pa' # puluseaudio for KDE
 			install_package 'kinfocenter' # see system information
+			install_package 'kdeconnect' # Adds communication between KDE and your smartphone
 			install_package 'spectacle' # screenshot utility
 			install_package 'kcolorchooser' # color picker on desktop screen
 			install_package 'plasma5-applets-redshift-control' # redshift applet for KDE
@@ -316,6 +317,10 @@ install_base() { # {{{
 		systemctl stop "dhcpcd@${wired_device}.service"
 		systemctl disable "dhcpcd@${wired_device}.service"
 		systemctl enable NetworkManager.service
+	fi
+
+	if has_package teamviewer; then
+		systemctl enable teamviewerd.service
 	fi
 
 	enter_to_continue
