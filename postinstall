@@ -215,9 +215,6 @@ set_desktop_environment() { # {{{
 }
 # }}}
 install_desktop_environment() { # {{{
-	print_progress 'Installing X-Server (req. for Desktopenvironment, GPU Drivers, Keyboardlayout,...)'
-	install_package 'xorg xorg-xinit'
-
 	if [[ "$DESKTOP_ENVIRONMENT" != '' ]]; then
 		confirm_yes "Use default ($DESKTOP_ENVIRONMENT)"
 		if [[ "$OPTION" == n ]]; then
@@ -227,6 +224,9 @@ install_desktop_environment() { # {{{
 		set_desktop_environment
 	fi
 	update_option 'DESKTOP_ENVIRONMENT'
+
+	print_progress 'Installing X-Server (req. for Desktopenvironment, GPU Drivers, Keyboardlayout,...)'
+	install_package 'xorg xorg-xinit'
 
 	case "$DESKTOP_ENVIRONMENT" in
 		KDE)
