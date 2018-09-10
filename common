@@ -47,3 +47,6 @@ USERNAME=''
 # DESKTOP ENVIRONMENT {{{
 DESKTOP_ENVIRONMENT='KDE'
 # }}}
+# DOTFILES {{{
+DOTFILES='NearHuscarl dotfiles'
+# }}}

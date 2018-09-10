@@ -327,46 +327,63 @@ install_base() { # {{{
 }
 # }}}
 
-setup_vim() { # {{{
-	local home="/home/$USERNAME"
+set_dotfiles() { # {{{
+	local dotfiles_list
 
-	if [[ -e "$home/.vim/setup.sh" ]]; then
-		print_progress 'Setup vim config files'
-		su --login "$USERNAME" -c "$home/.vim/setup.sh"
-	else
-		print_warning 'Vim setup file not found'
-	fi
+	OPTION=n
+	while [[ "$OPTION" == n ]]; do
+		print_title 'DOTFILES'
+		print_progress 'Set up dotfiles...'
+		echo
+
+		dotfiles=('NearHuscarl dotfiles', 'Custom dotfiles')
+		select dotfiles in "${dotfiles_list[@]}"; do
+			if contains_element "${dotfiles}" "${dotfiles_list[@]}"; then
+				DOTFILES="$dotfiles"
+				break
+			else
+				invalid_option
+			fi
+		done
+		confirm_yes "Confirm dotfiles ($DOTFILES)"
+	done
+}
+# }}}
+clone_dotfiles() { # {{{
+	local dotfile_tmp url="$1"
+
+	su --login "$USERNAME" -c "git clone --recursive $url /tmp/dotfiles-$USERNAME"
+	cp -af --verbose "/tmp/dotfiles-$USERNAME/." "/home/$USERNAME/"
+	rm -rf "/tmp/dotfiles-$USERNAME"
 }
 # }}}
 setup_dotfiles() { # {{{
-	local home="/home/$USERNAME"
-
-	print_title 'DOTFILES'
-	print_progress 'Set up dotfiles...'
-
-	su --login "$USERNAME" -c "git clone --recursive https://github.com/NearHuscarl/dotfiles /tmp/dotfiles"
-
-	if [[ ! -e /tmp/dotfiles  ]]; then
-		print_warning "Cannot download dotfiles"
-		return
-	fi
-
-	for file in $(find /tmp/dotfiles ! -path . | sed "s|^\./||"); do
-		if [ -e "$home/$file" ] && [ ! -d "$home/$file" ]; then
-			print_warning "$home/$file will be overwrited"
+	if [[ "$DOTFILES" != '' ]]; then
+		confirm_yes "Use default ($DOTFILES)"
+		if [[ "$DOTFILES" == n ]]; then
+			set_dotfiles
 		fi
-	done
-
-	confirm_yes "Confirm copy dotfiles to $home"
-
-	if [[ "$OPTION" != n ]]; then
-		shopt -s dotglob # cp * <dest> will include dot files
-		cp -af --verbose /tmp/dotfiles/* "$home"
-		setup_vim
+	else
+		set_dotfiles
 	fi
+	update_option 'DOTFILES'
 
-	rm -rd /tmp/dotfiles
+	case "$DOTFILES" in
+		'NearHuscarl dotfiles')
+			clone_dotfiles 'https://github.com/NearHuscarl/dotfiles'
 
+			if [[ -e "/home/$USERNAME/setup.sh" ]]; then
+				su --login "$USERNAME" -c "/home/$USERNAME/setup.sh"
+			else
+				print_warning 'dotfiles setup file not found'
+			fi
+			;;
+		'Custom dotfiles')
+			read -p 'Github Username: ' github_username
+			read -p 'Github Repo: ' github_repo
+			clone_dotfiles "https://github.com/$github_username/$github_repo"
+			;;
+	esac
 	enter_to_continue
 }
 # }}}
