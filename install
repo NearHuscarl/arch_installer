@@ -298,6 +298,7 @@ select_locale() { # {{{
 	locale_utf8="${LOCALE}.UTF-8"
 
 	echo "LANG=$locale_utf8" > "${MOUNTPOINT}/etc/locale.conf"
+	sed -i '/^[^#]/s/^\(.*\)$/#\1/' "${MOUNTPOINT}/etc/locale.gen" # comment previous option from last run
 	sed -i "s/#\(${locale_utf8}\)/\1/" "${MOUNTPOINT}/etc/locale.gen"
 	arch_chroot 'locale-gen'
 
