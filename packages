@@ -1,6 +1,6 @@
 # list of packages to install in postinstall script
 #
-# comment line start with '#' character
+# comment start with '#' character
 #
 # one or more packages per line, if there are multiple
 # packages, it all has to be either official or aur ones
@@ -48,6 +48,7 @@ virtualbox virtualbox-host-dkms virtualbox-guest-utils virtualbox-guest-dkms lin
 reflector
 bash-completion
 ripgrep fd
+mlocate
 trash-cli
 xclip
 fzf
