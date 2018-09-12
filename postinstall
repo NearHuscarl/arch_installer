@@ -322,7 +322,7 @@ set_dotfiles() { # {{{
 		print_progress 'Set up dotfiles...'
 		echo
 
-		dotfiles_list=('NearHuscarl dotfiles', 'Custom dotfiles')
+		dotfiles_list=('NearHuscarl dotfiles' 'Custom dotfiles')
 		select dotfiles in "${dotfiles_list[@]}"; do
 			if contains_element "${dotfiles}" "${dotfiles_list[@]}"; then
 				DOTFILES="$dotfiles"
@@ -339,7 +339,8 @@ clone_dotfiles() { # {{{
 	local dotfile_tmp url="$1"
 
 	su --login "$USERNAME" -c "git clone --recursive $url /tmp/dotfiles-$USERNAME"
-	cp -af --verbose "/tmp/dotfiles-$USERNAME/." "/home/$USERNAME/"
+	print_progress "copy dotfiles to /home/$USERNAME/"
+	cp -af "/tmp/dotfiles-$USERNAME/." "/home/$USERNAME/"
 	rm -rf "/tmp/dotfiles-$USERNAME"
 }
 # }}}
@@ -407,7 +408,7 @@ install() { # {{{
 		echo "    3. $(mainmenu_item "${checklist[2]}"  'Install AUR helper')"
 		echo "    4. $(mainmenu_item "${checklist[3]}"  'Install desktop environment' "$DESKTOP_ENVIRONMENT")"
 		echo "    5. $(mainmenu_item "${checklist[4]}"  'Install base')"
-		echo "    6. $(mainmenu_item "${checklist[5]}"  'Setup dotfiles')"
+		echo "    6. $(mainmenu_item "${checklist[5]}"  'Setup dotfiles' "$DOTFILES")"
 		echo "    7. $(mainmenu_item "${checklist[6]}"  'Install fonts')"
 		echo "    8. $(mainmenu_item "${checklist[7]}"  'Finish')"
 		echo
