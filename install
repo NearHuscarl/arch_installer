@@ -283,18 +283,10 @@ set_locale() { # {{{
 }
 # }}}
 select_locale() { # {{{
-	local locale_utf8
-
-	if [[ "$LOCALE" != '' ]]; then
-		confirm_yes "Use default ($LOCALE)"
-		if [[ "$OPTION" == n ]]; then
-			set_locale
-		fi
-	else
-		set_locale
-	fi
+	ask_default_option "$LOCALE" set_locale
 	update_option 'LOCALE'
 
+	local locale_utf8
 	locale_utf8="${LOCALE}.UTF-8"
 
 	echo "LANG=$locale_utf8" > "${MOUNTPOINT}/etc/locale.conf"
@@ -333,14 +325,7 @@ set_timezone() { # {{{
 }
 # }}}
 select_timezone() { # {{{
-	if [[ "$ZONE" != '' ]]; then
-		confirm_yes "Use default ($ZONE/$SUBZONE)"
-		if [[ "$OPTION" == n ]]; then
-			set_timezone
-		fi
-	else
-		set_timezone
-	fi
+	ask_default_option "$ZONE/$SUBZONE" set_timezone
 	update_option 'ZONE'
 	update_option 'SUBZONE'
 
@@ -373,14 +358,7 @@ set_hardware_clock() { # {{{
 }
 # }}}
 configure_hardware_clock() { # {{{
-	if [[ "$HARDWARE_CLOCK" != '' ]]; then
-		confirm_yes "Use default ($HARDWARE_CLOCK)"
-		if [[ "$OPTION" == n ]]; then
-			set_hardware_clock
-		fi
-	else
-		set_hardware_clock
-	fi
+	ask_default_option "$HARDWARE_CLOCK" set_hardware_clock
 	update_option 'HARDWARE_CLOCK'
 
 	case "$HARDWARE_CLOCK" in
@@ -415,14 +393,7 @@ set_keymap() { # {{{
 }
 # }}}
 select_keyboard_layout() { # {{{
-	if [[ "$KEYMAP" != '' ]]; then
-		confirm_yes "Use default ($KEYMAP)"
-		if [[ "$OPTION" == n ]]; then
-			set_keymap
-		fi
-	else
-		set_keymap
-	fi
+	ask_default_option "$KEYMAP" set_keymap
 	update_option 'KEYMAP'
 
 	# loadkeys "$KEYMAP"
@@ -450,14 +421,7 @@ create_hostname() { # {{{
 }
 # }}}
 configure_hostname() { # {{{
-	if [[ "$HOSTNAME" != '' ]]; then
-		confirm_yes "Use default ($HOSTNAME)"
-		if [[ "$OPTION" == n ]]; then
-			create_hostname
-		fi
-	else
-		create_hostname
-	fi
+	ask_default_option "$HOSTNAME" create_hostname
 	update_option 'HOSTNAME'
 
 	echo "$HOSTNAME" > "${MOUNTPOINT}/etc/hostname"

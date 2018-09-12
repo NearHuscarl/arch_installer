@@ -128,14 +128,7 @@ set_mirrorlist() { # {{{
 }
 # }}}
 configure_mirrorlist() { # {{{
-	if [[ "$MIRRORLIST" != '' ]]; then
-		confirm_yes "Use default ($MIRRORLIST)"
-		if [[ "$OPTION" == n ]]; then
-			set_mirrorlist
-		fi
-	else
-		set_mirrorlist
-	fi
+	ask_default_option "$MIRRORLIST" set_mirrorlist
 	update_option 'MIRRORLIST'
 
 	print_progress 'Backing up the original mirrorlist...'
@@ -215,14 +208,7 @@ set_desktop_environment() { # {{{
 }
 # }}}
 install_desktop_environment() { # {{{
-	if [[ "$DESKTOP_ENVIRONMENT" != '' ]]; then
-		confirm_yes "Use default ($DESKTOP_ENVIRONMENT)"
-		if [[ "$OPTION" == n ]]; then
-			set_desktop_environment
-		fi
-	else
-		set_desktop_environment
-	fi
+	ask_default_option "$DESKTOP_ENVIRONMENT" set_desktop_environment
 	update_option 'DESKTOP_ENVIRONMENT'
 
 	print_progress 'Installing X-Server (req. for Desktopenvironment, GPU Drivers, Keyboardlayout,...)'
@@ -336,7 +322,7 @@ set_dotfiles() { # {{{
 		print_progress 'Set up dotfiles...'
 		echo
 
-		dotfiles=('NearHuscarl dotfiles', 'Custom dotfiles')
+		dotfiles_list=('NearHuscarl dotfiles', 'Custom dotfiles')
 		select dotfiles in "${dotfiles_list[@]}"; do
 			if contains_element "${dotfiles}" "${dotfiles_list[@]}"; then
 				DOTFILES="$dotfiles"
@@ -358,14 +344,7 @@ clone_dotfiles() { # {{{
 }
 # }}}
 setup_dotfiles() { # {{{
-	if [[ "$DOTFILES" != '' ]]; then
-		confirm_yes "Use default ($DOTFILES)"
-		if [[ "$DOTFILES" == n ]]; then
-			set_dotfiles
-		fi
-	else
-		set_dotfiles
-	fi
+	ask_default_option "$DOTFILES" set_dotfiles
 	update_option 'DOTFILES'
 
 	case "$DOTFILES" in

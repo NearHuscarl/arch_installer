@@ -188,6 +188,7 @@ install_aur_package() { # {{{
 
 	for package in ${packages}; do
 		su --login "$USERNAME" -c "trizen -S --noconfirm --needed $package" # install if not exists
+		rm -rf "/tmp/trizen-${USERNAME}/*"
 	done
 }
 # }}}
@@ -218,10 +219,6 @@ setup_xinitrc() { # {{{
 
 read_input() { # {{{
 	read -p "$1" OPTION
-}
-# }}}
-ask_use_default() { # {{{
-	confirm_yes 'Use default'
 }
 # }}}
 arch_chroot() { # {{{
@@ -267,6 +264,19 @@ is_in_virtualbox() { # {{{
 update_option() { # {{{
 	local option="$1" value="${!1}" # get the variable value where variable name is stored as a string
 	sed -i "/^${option}=/s/^.*$/${option}='$value'/" "$PROJECT_ROOT/common"
+}
+# }}}
+ask_default_option() { # {{{
+	local option="$1" set_option_callback="$2"
+
+	if [[ "$option" != '' ]]; then
+		confirm_yes "Use default ($option)"
+		if [[ "$OPTION" == n ]]; then
+			$set_option_callback
+		fi
+	else
+		$set_option_callback
+	fi
 }
 # }}}
 
