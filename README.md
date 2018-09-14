@@ -21,17 +21,17 @@ customizable, well maintained and have more options than my script anyway
 I do not suggest using this script, just use [aui][1], if you want to use it
 however, please test it with a virtualbox first and read the script carefully
 
-* This script will only run on UEFI systems
-* At the beginning you have to choose 4 partitions for: root, home, boot and swap
-* After that it will format boot partition as fat32, the rest is ext4
-* I currently use KDE so the code installing i3 and xfce4 is not tested yet
+-  This script will only run on UEFI systems
+-  At the beginning you have to choose 4 partitions for: root, home, boot and swap
+-  After that it will format boot partition as fat32, the rest is ext4
+-  I currently use KDE so the code installing i3 and xfce4 is not tested yet
 
 ## Usage
 
-* Download arch ISO file from [here][2]
-* Use [rufus][3] (most stable to me) to make a bootable USB using the arch image
-* Reboot to the usb
-* Get the script and run it
+-  Download arch ISO file from [here][2]
+-  Use [rufus][3] (most stable to me) to make a bootable USB using the arch image
+-  Reboot to the usb
+-  Get the script and run it
 
 **Note:** You should install in the correct order from 1-n because I did not
 check all cases
@@ -45,17 +45,25 @@ cd arch_installer
 ./install
 ```
 
-* After installing the base system choose finish to reboot. A copy of this repo
-is placed in the root directory. Go to there and run the other script
+Without git
 
 ```bash
-cd arch_installer
+curl -L https://github.com/NearHuscarl/arch_installer/archive/master.tar.gz > arch_installer.tar.gz
+tar -xvf arch_installer.tar.gz
+cd arch_installer-master
+./install
+```
+
+-  After installing the base system choose finish to reboot. A copy of this repo
+   is placed in the root directory. Go to there and run the other script
+
+```bash
 ./postinstall
 ```
 
 ## Credit
 
-* [aui][1]
+-  [aui][1]
 
 ## License
 
