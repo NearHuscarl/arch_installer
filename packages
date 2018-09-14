@@ -38,6 +38,8 @@ robo3t-bin # AUR
 intellij-idea-ce
 jdk8-openjdk
 
+pycharm-community-edition
+
 # telex
 ibus-unikey
 
@@ -56,7 +58,7 @@ lastpass-cli
 pacman-contrib
 
 # other
-vlc redshift openssh gparted qalculate-gtk
+vlc redshift openssh gparted qalculate-gtk filelight
 
 teamviewer # AUR
 
