@@ -1,25 +1,34 @@
 ﻿# Arch Linux Installer
 
-After installing arch for the first time by manually typing every commands
-carefully. I realized that those commands will be forgotten soon enough and I
-have to do the hard work again when reinstalling arch. Unfortunately I did not
-know shell script very well at that time to automate stuff like that
+**WARNING** DO NOT USE THIS SCRIPT AS IT'S TAILORED FOR MY PERSONAL USECASE 
 
-That's why I wrote this script now. This is the wizard that help installing
-arch less painful because I do not reinstall my system regularly, I use arch
-for that reason as I don't want to install or update my OS again, just use it
-and move on with my life, but if I have to someday then it should not be much
-of a chore as right now
+## Troubleshoot
 
-This script is heavily inspired from [aui][1], many functions and logic is copied
-from there, you should use that one instead as this one is customized to my
-machine and setup and not guarantee to work on your computer. [aui][1] is more
-customizable, well maintained and have more options than my script anyway
+### System Info
+
+- OS: Manjaro Linux x86_64 
+- Host: HP Pavilion Notebook 
+- Kernel: 4.19.45-1-MANJARO 
+- Uptime: 1 hour, 22 mins 
+- Packages: 1126 (pacman) 
+- Shell: bash 5.0.7 
+- Resolution: 1366x768 
+- DE: Xfce 
+- WM: Xfwm4 
+- WM Theme: Matcha-dark-azul 
+- Theme: Matcha-dark-azul [GTK2], Adwaita [GTK3] 
+- Icons: Papirus-Dark-Maia [GTK2], Adwaita [GTK3] 
+- Terminal: xfce4-terminal 
+- Terminal Font: Monospace 12 
+- CPU: Intel i7-6500U (4) @ 3.100GHz 
+- GPU: NVIDIA GeForce 940MX 
+- GPU: Intel Skylake GT2 [HD Graphics 520] 
+
+### Fix audio crackling on HP machines
+- https://wiki.archlinux.org/index.php/ASUS_Zenbook_UX430/UX530#Headphones_audio_is_too_low
+- https://bugs.launchpad.net/ubuntu/+source/alsa-driver/+bug/1648183
 
 ## Detail
-
-I do not suggest using this script, just use [aui][1], if you want to use it
-however, please test it with a virtualbox first and read the script carefully
 
 -  This script will only run on UEFI systems
 -  At the beginning you have to choose 4 partitions for: root, home, boot and swap
